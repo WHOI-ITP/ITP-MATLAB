@@ -21,7 +21,7 @@ To date, 110 ITP systems have been deployed, and more than 110000 water profiles
   * **latitude**
     A two element vector specifying the Southern and Northern bounding parallels, **in that order**
   * **longitude**
-    A two element vector specifying the Western and Eastern bounding meridians, **in that order**
+    A two element vector specifying the Western and Eastern bounding meridians, **in that order**. Acceptable meridian range is [-180, 180].
   * **date_time**
     A two element vector specifying the start and end times of the search. Times must be specified in MATLAB *serial time format*.
   * **pressure**
