@@ -1,7 +1,7 @@
 function out = load_itp(varargin)
 startTime = now;
 p = inputParser;
-addParameter(p, 'system', [1:1000]);
+addParameter(p, 'system', []);
 addParameter(p, 'latitude', [-90 90]);
 addParameter(p, 'longitude', [-180 180]);
 addParameter(p, 'date_time', [datenum(2001,1,1) datenum(2100,1,1)]);
@@ -11,7 +11,16 @@ parse(p, varargin{:});
 query = 'SELECT * FROM profiles';
 
 if length(p.UsingDefaults) ~= 5
-    query = [query, ' WHERE '];
+    query = [query, ' WHERE'];
+end
+
+if notDefault('system', p)
+    system_filter = '(';
+    for i = 1:length(p.Results.system)
+        system_filter = [system_filter, sprintf(' system_number = %d OR', p.Results.system(i))];
+    end
+    system_filter = [system_filter(1:end-3), ') AND'];
+    query = [query, system_filter];
 end
 
 if notDefault('latitude', p)
@@ -40,7 +49,8 @@ if strcmp(query(end-3:end), ' AND')
     query = query(1:end-4);
 end
 
-db = mksqlite('open', 'C:\Projects\ITP-Python\itp_python\itp.db');
+directory = fileparts(mfilename('fullpath'));
+db = mksqlite('open', fullfile(directory, 'itp.db'));
 mksqlite('NULLasNaN', 1);
 precision = mksqlite(db, 'SELECT name, precision FROM sensors');
 results = mksqlite(db, query);
@@ -70,25 +80,16 @@ for i = 1:size(results, 1)
     out(i).latitude = results(i).latitude;
     out(i).longitude = results(i).longitude;
     out(i).date_time = results(i).date_time;
+    out(i).serial_time = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');
     
                                       
-    sql = sprintf('SELECT pressure, temperature, salinity FROM ctd WHERE profile_id = %d %s ORDER BY pressure',...
+    sql = sprintf('SELECT pressure/10.0 as pressure, temperature/10000.0 as temperature, salinity/10000.0 as salinity FROM ctd WHERE profile_id = %d %s ORDER BY pressure',...
                   results(i).id, pressureFilter);
-    samples = mksqlite(db, sql);
-    fields = fieldnames(samples);
-    for j = 1:length(fields)
-        isField = strcmp({precision.name}, fields{j});
-        if length(samples) ~= 0 && any(isField)
-            ind = find(isField, 1, 'first');
-            p = precision(ind).precision;
-            newVals = num2cell([samples.(fields{j})]/(10^p));
-            [samples.(fields{j})] = newVals{:};
-        end
-    end
+    out(i).sensors = mksqlite(db, sql);
             
-    out(i).sensors.pressure = [samples.pressure]';
-    out(i).sensors.temperature = [samples.temperature]';
-    out(i).sensors.salinity = [samples.salinity]';
+%     out(i).sensors.pressure = [samples.pressure]';
+%     out(i).sensors.temperature = [samples.temperature]';
+%     out(i).sensors.salinity = [samples.salinity]';
     
 % %     other_sensors = mksqlite(db, sprintf(['SELECT DISTINCT sensor_id, name from ctd ' ...
 % %                                           'LEFT JOIN sensor_names ON other_sensors.sensor_id = sensor_names.id ' ...
