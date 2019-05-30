@@ -1,4 +1,4 @@
-function out = load_itp(varargin)
+function results = load_itp(varargin)
 startTime = now;
 p = inputParser;
 addParameter(p, 'system', []);
@@ -66,57 +66,25 @@ if notDefault('pressure', p)
         p = precision(pressureInd).precision;
         pressure = pressure * 10 .^ p;
     end
-    pressureFilter = sprintf(' AND pressure >= %f and pressure <= %f ', pressure);
+    pressureFilter = sprintf(' AND pressure >= %f AND pressure <= %f ', pressure);
 else
     pressureFilter = '';
 end
 
-out = [];
-
 for i = 1:size(results, 1)
-    out(i).system_number = results(i).system_number;
-    out(i).profile_number = results(i).profile_number;
-    out(i).date_time = results(i).date_time;
-    out(i).latitude = results(i).latitude;
-    out(i).longitude = results(i).longitude;
-    out(i).date_time = results(i).date_time;
-    out(i).serial_time = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');
-    
-                                      
-    sql = sprintf('SELECT pressure/10.0 as pressure, temperature/10000.0 as temperature, salinity/10000.0 as salinity FROM ctd WHERE profile_id = %d %s ORDER BY pressure',...
-                  results(i).id, pressureFilter);
-    out(i).sensors = mksqlite(db, sql);
-            
-%     out(i).sensors.pressure = [samples.pressure]';
-%     out(i).sensors.temperature = [samples.temperature]';
-%     out(i).sensors.salinity = [samples.salinity]';
-    
-% %     other_sensors = mksqlite(db, sprintf(['SELECT DISTINCT sensor_id, name from ctd ' ...
-% %                                           'LEFT JOIN sensor_names ON other_sensors.sensor_id = sensor_names.id ' ...
-% %                                           'LEFT JOIN other_sensors ON ctd.id = other_sensors.ctd_id ' ...
-% %                                           'where profile_id = %d and sensor_id is not NULL'], results(i).profile_number));
-%     other_sensors = mksqlite(db, sprintf(['select DISTINCT sensor_names.id, sensor_names.name from other_sensors '...
-%                                           'INNER JOIN ctd on ctd.profile_id = %d and ctd.id = other_sensors.ctd_id '...
-%                                           'INNER JOIN sensor_names on sensor_names.id = other_sensors.sensor_id'], results(i).profile_number));
-% 
-%         
-%     for s = 1:length(other_sensors)
-%         other_sensors(s).name = strrep(other_sensors(s).name, '-', '_');
-%         out(i).sensors.(other_sensors(s).name) = mksqlite(db, sprintf(['SELECT value FROM ctd '...
-%                              'LEFT JOIN other_sensors '...
-%                              'ON other_sensors.ctd_id = ctd.id and sensor_id = %d '...
-%                              'WHERE ctd.profile_id = %d '], s, results(i).id));
-                       
-%    end
-% %     for s = 1:length(other_sensors)
-% %         sql = [sql, sprintf(' LEFT JOIN other_sensors as %s ON %s.ctd')];
-% %     end
-% %     sql = [sql, sprintf(' FROM ctd WHERE ctd.profile_id=%d ORDER BY pressure', results(i).id')];
-% %     samples = mksqlite(db, sql);
+    results(i).serial_time = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');                          
+    query = sprintf(['SELECT pressure/10.0 AS pressure, ',...
+                            'temperature/10000.0 AS temperature, ',... 
+                            'salinity/10000.0 AS salinity ',...
+                     'FROM ctd ',...
+                     'WHERE profile_id = %d %s ',...
+                     'ORDER BY pressure'],...                        
+                     results(i).id, pressureFilter);
+    results(i).sensors = mksqlite(db, query);
 end
-disp(sprintf('%d profiles returned in %f seconds', length(out), (now-startTime)*24*60*60));
+results = rmfield(results, 'id');
+fprintf('%d profiles returned in %0.2f seconds\n', length(results), (now-startTime)*24*60*60);
 mksqlite(db, 'close');
-
 
 
 function state = notDefault(field, parameters)
