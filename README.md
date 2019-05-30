@@ -52,7 +52,7 @@ Return all profiles from ITPs 1, 2, 3.
   1. Download the latest ITP-MATLAB package from here https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip Save it to a temporary location.
   2. Unzip the file. Rename the unzipped folder to ITP-MATLAB.
   3. Move the ITP-MATLAB folder to your preferred location. e.g. `C:\ITP-MATLAB`
-  4. Download the itp database, temporarily stored here: https://drive.google.com/open?id=1IaUmIbZ2WEg1dqWqW7_TLMxUkTIVV_fh and copy it into the ITP-MATLAB directory
+  4. Download the itp database, temporarily stored here: https://drive.google.com/open?id=1IaUmIbZ2WEg1dqWqW7_TLMxUkTIVV_fh and copy it into the ITP-MATLAB\itp_matlab directory.
   5. In MATLAB, type `pathtool` in the command window. 
   6. Click the `Add Folder...` button.
   7. Browse to the ITP-MATLAB folder and add the `itp_matlab` and `mksqlite-1.5` folders to the path (you have to add each separately)
