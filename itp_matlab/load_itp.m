@@ -51,9 +51,9 @@ end
 
 db_path = which('itp.db', '-all');
 if length(db_path) > 1
-    db_path = db_path{1};
-    warning('More than one itp.db files found on path. Using database %s', db_path);
+    warning('More than one itp.db files found on path. Using database %s', db_path{1});
 end
+db_path = db_path{1};
 
 db = mksqlite('open', db_path);
 mksqlite('NULLasNaN', 1);
