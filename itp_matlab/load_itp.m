@@ -49,11 +49,11 @@ if strcmp(query(end-3:end), ' AND')
     query = query(1:end-4);
 end
 
-db_path = which('itp.db', '-all');
+db_path = dir('itp*.db');
 if length(db_path) > 1
-    warning('More than one itp.db files found on path. Using database %s', db_path{1});
+    warning('More than one itp database files were found. Using database %s', db_path(end).name);
 end
-db_path = db_path{1};
+db_path = db_path(end).name;
 
 db = mksqlite('open', db_path);
 mksqlite('NULLasNaN', 1);
@@ -86,7 +86,7 @@ for i = 1:size(results, 1)
         results(i).id, pressureFilter)];
     results(i).variables = mksqlite(db, query);
 end
-results = rmfield(results, 'id');
+results = rmfield(results, {'id', 'file_name', 'date_time', 'n_depths'});
 fprintf('%d profiles returned in %0.2f seconds\n', length(results), (now-startTime)*24*60*60);
 mksqlite(db, 'close');
 
