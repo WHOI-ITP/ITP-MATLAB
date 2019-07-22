@@ -4,7 +4,7 @@ p = inputParser;
 addParameter(p, 'system', []);
 addParameter(p, 'latitude', [-90 90]);
 addParameter(p, 'longitude', [-180 180]);
-addParameter(p, 'date_time', [datenum(2001,1,1) datenum(2100,1,1)]);
+addParameter(p, 'date_time', [0 datenum(2100,1,1)]);
 addParameter(p, 'pressure', [0 1000000]);
 parse(p, varargin{:});
 
@@ -49,10 +49,14 @@ if strcmp(query(end-3:end), ' AND')
     query = query(1:end-4);
 end
 
-directory = fileparts(mfilename('fullpath'));
-db = mksqlite('open', fullfile(directory, 'itp.db'));
+db_path = which('itp.db', '-all');
+if length(db_path) > 1
+    db_path = db_path{1};
+    warning('More than one itp.db files found on path. Using database %s', db_path);
+end
+
+db = mksqlite('open', db_path);
 mksqlite('NULLasNaN', 1);
-precision = mksqlite(db, 'SELECT name, precision FROM sensors');
 results = mksqlite(db, query);
 
 if length(results) > 5000
@@ -61,30 +65,47 @@ end
 
 if notDefault('pressure', p)
     pressure = p.Results.pressure;
-    pressureInd = find(strcmp({precision.name}, 'pressure'));
-    if ~isempty(pressureInd)
-        p = precision(pressureInd).precision;
-        pressure = pressure * 10 .^ p;
-    end
+    pressure = pressure * 1E4;
     pressureFilter = sprintf(' AND pressure >= %f AND pressure <= %f ', pressure);
 else
     pressureFilter = '';
 end
 
 for i = 1:size(results, 1)
-    results(i).serial_time = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');                          
-    query = sprintf(['SELECT pressure/10.0 AS pressure, ',...
-                            'temperature/10000.0 AS temperature, ',... 
-                            'salinity/10000.0 AS salinity ',...
-                     'FROM ctd ',...
-                     'WHERE profile_id = %d %s ',...
-                     'ORDER BY pressure'],...                        
-                     results(i).id, pressureFilter);
-    results(i).sensors = mksqlite(db, query);
+    results(i).serial_time = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');
+    query = sprintf([
+        'SELECT DISTINCT variable_names.* FROM ctd '...
+        'INNER JOIN other_variables ON ctd.id == other_variables.ctd_id '...
+        'INNER JOIN variable_names ON other_variables.variable_id == variable_names.id '...
+        'WHERE ctd.profile_id == %d'],...
+        results(i).id);
+    other_variables = mksqlite(db, query);
+    query = build_profile_query(other_variables);
+    query = [query,...
+        sprintf('WHERE profile_id = %d %s ORDER BY pressure',...
+        results(i).id, pressureFilter)];
+    results(i).variables = mksqlite(db, query);
 end
 results = rmfield(results, 'id');
 fprintf('%d profiles returned in %0.2f seconds\n', length(results), (now-startTime)*24*60*60);
 mksqlite(db, 'close');
+
+
+function query = build_profile_query(other_variables)
+query = [
+    'SELECT pressure/10000.0 AS pressure, ',...
+    'temperature/10000.0 AS temperature, ',... 
+    'salinity/10000.0 AS salinity '];
+
+for i = 1:length(other_variables)
+    query = [query, sprintf(', v%d.value/10000.0 AS "%s" ', i, other_variables(i).name)];
+end
+query = [query, 'FROM ctd '];
+for i = 1:length(other_variables)
+    query = [query, ...
+        sprintf('LEFT JOIN other_variables v%d ON ctd.id == v%d.ctd_id AND v%d.variable_id == %d ',...
+        i, i, i, other_variables(i).id)];
+end
 
 
 function state = notDefault(field, parameters)
