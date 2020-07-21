@@ -15,9 +15,11 @@ To date, 110 ITP systems have been deployed, and more than 110000 water profiles
   - Profiles are returned as a MATLAB structured array
 
 ## Usage
-#### load_itp
-`load_itp` is the primary function used to retreive ITP data from the database. It accepts a variety of filtering parameters. **Please pay attention to the order in which the bounds are specified for the various parameters.**
+#### load_itp(db_path, [parameters])
+`load_itp` is the primary function used to retrieve ITP data from the database. It accepts a variety of filtering parameters. **Please pay attention to the order in which the bounds are specified for the various parameters.**
 ##### Parameters
+  * **db_path**
+    A path to the database containing ITP profiles.
   * **latitude**
     A two element vector specifying the Southern and Northern bounding parallels.
   * **longitude**
@@ -28,25 +30,29 @@ To date, 110 ITP systems have been deployed, and more than 110000 water profiles
     A two element vector specifying the lowest and highest pressure bounds for returned profiles (in dbar).
   * **system**
     A vector of ITP system numbers to filter for.
+  * **max_results**
+    The maximum number of results the `load_itp` function will return without throwing an error. *
 
-Currently `load_itp` is limited to returning 5000 profiles in order to avoid protracted wait times and/or memory limitations in the event of an overly broad search. Currently load_itp is only returning pressure, temperature, and salinity data.
+*By default `load_itp` is limited to returning 10000 profiles in order to avoid protracted wait times and/or memory limitations in the event of an overly broad search.
+
 #### Example Usage
 Return all profiles bounded by the parallels 70 and 80 degrees, the meridians -170 and -140 degrees, during the year 2010.
 ```
+>> path = 'c:/path/to/database.db';
 >> startTime = datenum(2010, 1, 1);
 >> endTime = datetime(2010, 12, 31)
->> profiles = load_itp('latitude', [70, 80], 'longitude', [-170, -140], 'date_time', [startTime, endTime]);
+>> profiles = load_itp(path, 'latitude', [70, 80], 'longitude', [-170, -140], 'date_time', [startTime, endTime]);
 1539 profiles returned in 2.68 seconds
 ```
 Return all profiles from the second half of 2008 clipping the pressure at 100 dbar.
 ```
->> profiles = load_itp('date_time', [datenum(2008,7,1), datenum(2008,12,31)], 'pressure', [0, 100]);
+>> profiles = load_itp(path, 'date_time', [datenum(2008,7,1), datenum(2008,12,31)], 'pressure', [0, 100]);
 3885 profiles returned in 3.69 seconds
 ```
 Return all profiles from ITPs 1, 2, 3.
 ```
->> profiles = load_itp('system', [1, 2, 3]);
->> profiles = load_itp('system', [1:3]); % would also work
+>> profiles = load_itp(path, 'system', [1, 2, 3]);
+>> profiles = load_itp(path, 'system', [1:3]); % would also work
 3797 profiles returned in 7.49 seconds
 ```
 
@@ -54,8 +60,8 @@ Return all profiles from ITPs 1, 2, 3.
   1. Download the latest `ITP-MATLAB` package https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip Save it to a temporary location.
   2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`.
   3. Move the `ITP-MATLAB` folder to your preferred location. e.g. `C:\ITP-MATLAB`
-  4. Download the itp database, temporarily stored here: https://drive.google.com/open?id=1IaUmIbZ2WEg1dqWqW7_TLMxUkTIVV_fh Unzip it, and copy `itp_*.db` into the `ITP-MATLAB\itp_matlab` directory.
+  4. Download the itp database, temporarily stored here: https://drive.google.com/open?id=1IaUmIbZ2WEg1dqWqW7_TLMxUkTIVV_fh Unzip it to your desired location, and take note of its path.
   5. In MATLAB, type `pathtool` in the command window. 
   6. Click the `Add Folder...` button.
-  7. Browse to the ITP-MATLAB folder and add the `itp_matlab` and `mksqlite-1.5` folders to the path (you have to add each separately)
+  7. Browse to the ITP-MATLAB folder from step 3 and add the `itp_matlab` and `mksqlite-1.5` sub-folders to the path (both were contained in the zip file. You have to add each to the MATLAB path separately)
   8. Click `Save` and close the path window.
