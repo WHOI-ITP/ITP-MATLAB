@@ -1,4 +1,4 @@
-function results = load_itp(path, varargin)
+function results = load_itp(db_path, varargin)
 startTime = now;
 p = inputParser;
 addParameter(p, 'system', ['*']);
@@ -48,7 +48,7 @@ end
 
 query = [query, ' ORDER BY system_number, profile_number'];
 
-db = mksqlite('open', path);
+db = mksqlite('open', db_path);
 mksqlite('NULLasNaN', 1);
 results = mksqlite(db, query);
 
