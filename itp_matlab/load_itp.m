@@ -64,6 +64,7 @@ else
     pressureFilter = '';
 end
 
+emptyProfile = false(size(results, 1), 1);
 for i = 1:size(results, 1)
     results(i).serial_time = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');
     query = [
@@ -76,11 +77,16 @@ for i = 1:size(results, 1)
         sprintf('WHERE profile_id = %d %s ORDER BY pressure',...
         results(i).id, pressureFilter)];
     ctd = mksqlite(db, query);
-    results(i).pressure = [ctd.pressure];
-    results(i).temperature = [ctd.temperature];
-    results(i).salinity = [ctd.salinity];
+    if ~isempty(ctd)
+        results(i).pressure = [ctd.pressure];
+        results(i).temperature = [ctd.temperature];
+        results(i).salinity = [ctd.salinity];
+    else
+        emptyProfile(i) = true;
+    end
 end
-%results = rmfield(results, {'id', 'file_name', 'date_time', 'n_depths'});
+results = results(~emptyProfile);
+results = rmfield(results, {'id', 'source'});
 fprintf('%d profiles returned in %0.2f seconds\n', length(results), (now-startTime)*24*60*60);
 mksqlite(db, 'close');
 
