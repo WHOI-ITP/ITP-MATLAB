@@ -78,7 +78,7 @@ scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
 ```
 PRESSURE_RANGE = [0, 300];
 
-path = '../itp_final_2021_01_20.db';
+path = 'c:/path/to/database.db';
 profiles = load_itp(path, 'system', 1, 'pressure', PRESSURE_RANGE);
 
 % extract latitude and longitude values
@@ -128,7 +128,7 @@ ylabel(h, 'In Situ Temperature (C)')
 ### Example - Show a map with temperature at 400m
 
 ```
-path = '../itp_final_2021_01_20.db';
+path = 'c:/path/to/database.db';
 dateRange = [datenum(2006, 1, 1), datenum(2008, 1, 1)];
 
 profiles = load_itp(path,... 
@@ -157,12 +157,15 @@ caxis([0.5, 1])
 
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/temperature_400m.PNG' height='400'/>
 
-## Installation (non-git method)
-  1. Download the latest `ITP-MATLAB` package https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip Save it to a temporary location.
+## Installation
+#### Windows users
+  1. Download the latest `ITP-MATLAB` package https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip 
   2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`.
-  3. Move the `ITP-MATLAB` folder to your preferred location. e.g. `C:\ITP-MATLAB`
-  4. Download the itp database, from here: https://www.dropbox.com/sh/5u68j8h5eiamk1x/AABZTJd3Hx2y-GAsoBKyZo01a?dl=0 Unzip it to your desired location (it's probably easiest to just put it in the ITP-MATLAB folder), and take note of its path (you'll need to specify it when you query the database).
-  5. In MATLAB, type `pathtool` in the command window. 
-  6. Click the `Add Folder...` button.
-  7. Browse to the ITP-MATLAB folder from step 3 and add the `itp_matlab` and `mksqlite-1.5` sub-folders to the path.
-  8. Click `Save` and close the path window.
+  3. Download the itp\_**final**\_yyyy\_mm\_dd.zip database, from here: https://www.dropbox.com/sh/5u68j8h5eiamk1x/AABZTJd3Hx2y-GAsoBKyZo01a?dl=0 Unzip it to your desired location, and take note of its path. yyyy\_mm\_dd is the date the database was built.
+  4. In MATLAB, type `pathtool` in the command window. 
+  5. Click the `Add Folder...` button.
+  6. Browse to the ITP-MATLAB folder from step 2 and add the `itp_matlab` and `mksqlite-1.5` sub-folders to the path.
+  7. Click `Save` and close the path window.
+  
+#### Mac Users
+Installation steps are the same, but you must compile mksqlite from source. Find the latest release here: https://github.com/AndreasMartin72/mksqlite/tags Run buildit.m to compile to a MEX-DLL. Unfortunately I don't have a Mac so I'm unable to test this. Please open an issue if you have trouble and I will see if I can help.
