@@ -124,8 +124,38 @@ ylabel('Pressure (mbar)');
 ylabel(h, 'In Situ Temperature (C)')
 ```
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/itp1_section.PNG' height='400'/>
-### Example
 
+### Example - Show a map with temperature at 400m
+
+```
+path = '../itp_final_2021_01_20.db';
+dateRange = [datenum(2006, 1, 1), datenum(2008, 1, 1)];
+
+profiles = load_itp(path,... 
+                    'latitude', [70, 80],... 
+                    'longitude', [-180, -130],... 
+                    'date_time', dateRange,...
+                    'pressure', [400, 402],...
+                    'max_results', 10000);
+
+temp_400 = zeros(length(profiles), 1);
+for i = 1:length(profiles)
+    temp_400(i) = profiles(i).temperature(1);
+end
+
+longitude = [profiles.longitude];
+latitude = [profiles.latitude];
+
+figure('Color', 'white')
+worldmap([70, 90], [-180, 180]);
+geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
+scatterm([profiles.latitude], [profiles.longitude], 15, temp_400, 'filled');
+h = colorbar;
+ylabel(h, 'In Situ Temperature (C)')
+caxis([0.5, 1])
+```
+
+<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/temperature_400m.PNG.PNG' height='400'/>
 
 ## Installation (non-git method)
   1. Download the latest `ITP-MATLAB` package https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip Save it to a temporary location.
