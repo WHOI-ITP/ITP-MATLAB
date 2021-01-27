@@ -38,7 +38,7 @@ end
 
 if notDefault('date_time', p)
     time = {datestr(p.Results.date_time(1), 'yyyy-mm-ddTHH:MM:SS'), datestr(p.Results.date_time(2), 'yyyy-mm-ddTHH:MM:SS')};
-    timeFilter = sprintf(' date_time BETWEEN "%s" AND "%s"', time{1}, time{2});
+    timeFilter = sprintf(' date_time >= "%s" AND date_time < "%s"', time{1}, time{2});
     query = [query, timeFilter];
 end
 
@@ -64,9 +64,9 @@ else
     pressureFilter = '';
 end
 
-emptyProfile = false(size(results, 1), 1);
+isData = false(size(results, 1), 1);
 for i = 1:size(results, 1)
-    results(i).serial_time = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');
+    results(i).serialTime = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');
     query = [
         'SELECT pressure/10000.0 AS pressure, ',...
         'temperature/10000.0 AS temperature, ',... 
@@ -77,16 +77,23 @@ for i = 1:size(results, 1)
         sprintf('WHERE profile_id = %d %s ORDER BY pressure',...
         results(i).id, pressureFilter)];
     ctd = mksqlite(db, query);
-    if ~isempty(ctd)
-        results(i).pressure = [ctd.pressure];
-        results(i).temperature = [ctd.temperature];
-        results(i).salinity = [ctd.salinity];
-    else
-        emptyProfile(i) = true;
+    results(i).pressure = [ctd.pressure];
+    results(i).temperature = [ctd.temperature];
+    results(i).salinity = [ctd.salinity];
+    if size(ctd, 1) > 0
+        isData(i) = true;
     end
 end
-results = results(~emptyProfile);
-results = rmfield(results, {'id', 'source'});
+
+results = results(isData);
+
+if length(results) > 0
+    [results.('cruise')] = results.('system_number');
+    [results.('station')] = results.('profile_number');
+    [results.('salt')] = results.('salinity');
+    results = rmfield(results, {'id', 'system_number', 'profile_number', 'source', 'date_time','salinity'});
+end
+
 fprintf('%d profiles returned in %0.2f seconds\n', length(results), (now-startTime)*24*60*60);
 mksqlite(db, 'close');
 
