@@ -29,9 +29,9 @@ system | A vector of ITP system numbers to filter for.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
 
-#### Example Usage
+## Example Usage
 Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path, you need to download the ITP database. See the bottom of this page for instructions on doing both. 
-
+#### Example 1 - search the database based on a geographical area and a time range
 The following example demonstrates how to retrieve all profiles from 2010 in the region bounded by 70 and 80 degrees North, and 170 to 140 degrees West. 
 
 First specify the path to the database file you downloaded.
@@ -46,7 +46,7 @@ Finally, call the load_itp function with the desired arguments. Note the order t
 ```
 profiles = load_itp(path, 'latitude', [70, 80], 'longitude', [-170, -140], 'date_time', dateRange);
 ```
-The function returns the request profiles and outputs:
+The function returns the requested profiles:
 ```
 1539 profiles returned in 2.68 seconds
 ```
@@ -72,6 +72,57 @@ geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
 scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
 ```
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/scatter.PNG' height='400'/>
+
+#### Example 2 - Plot a temperature section for the top 300 meters of ITP 1
+```
+PRESSURE_RANGE = [0, 300];
+
+path = '../itp_final_2021_01_20.db';
+profiles = load_itp(path, 'system', 1, 'pressure', PRESSURE_RANGE);
+
+% extract latitude and longitude values
+latitude = [profiles.latitude]';
+longitude = [profiles.longitude]';
+
+% calculate distance between stations in km 
+% the distance function requires mapping toolbox
+station_spacing = distance(...
+    [latitude(1:end-1), longitude(1:end-1)],...
+    [latitude(2:end), longitude(2:end)],...
+    referenceEllipsoid('GRS80')...
+);
+station_spacing = station_spacing / 1000;
+
+% calculate cumulative drift distance
+cumulative_distance = [0; cumsum(station_spacing)];
+
+% make grids from distance and pressure
+[dist_grid, pres_grid] = meshgrid(cumulative_distance,...
+                                   PRESSURE_RANGE(1):PRESSURE_RANGE(2));
+
+% Use scatteredInterpolant to create a temperature grid for use
+% with contourf
+depth_vec = []; dist_vec = []; temp_vec = [];
+for i = 1:length(profiles)
+    I = profiles(i).pressure >= PRESSURE_RANGE(1) & ...
+        profiles(i).pressure < PRESSURE_RANGE(2);
+    depth_vec = [depth_vec, profiles(i).pressure(I)];
+    temp_vec = [temp_vec, profiles(i).temperature(I)];
+    dist_vec = [dist_vec, repmat(cumulative_distance(i), 1, sum(I))];
+end
+tempInterpolant = scatteredInterpolant(dist_vec', depth_vec', temp_vec');
+temp_grid = tempInterpolant(dist_grid, pres_grid);
+
+% Plot the data
+figure('Color', 'white')
+contourf(dist_grid, pres_grid, temp_grid, 6, 'LineColor', 'none')
+axis ij
+h = colorbar;
+xlabel('Drift Distance (km)');
+ylabel('Pressure (mbar)');
+ylabel(h, 'In Situ Temperature (C)')
+```
+<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/itp1_section.PNG' height='400'/>
 
 
 ## Installation (non-git method)
