@@ -29,9 +29,10 @@ system | A vector of ITP system numbers to filter for.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
 
-## Example Usage
-Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path, you need to download the ITP database. See the bottom of this page for instructions on doing both. 
-#### Example 1 - search the database based on a geographical area and a time range
+## Examples
+Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path, you need to download the ITP database. See the bottom of this page for instructions on doing both. The .m files for these examples are in the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/tree/master/examples'>examples folder</a>.
+
+### Example - Search the database based on a geographical area and time range, then make a scatter plot of the station locations
 The following example demonstrates how to retrieve all profiles from 2010 in the region bounded by 70 and 80 degrees North, and 170 to 140 degrees West. 
 
 First specify the path to the database file you downloaded.
@@ -73,7 +74,7 @@ scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
 ```
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/scatter.PNG' height='400'/>
 
-#### Example 2 - Plot a temperature section for the top 300 meters of ITP 1
+### Example - Plot a temperature section for the top 300 meters of ITP 1
 ```
 PRESSURE_RANGE = [0, 300];
 
@@ -123,6 +124,7 @@ ylabel('Pressure (mbar)');
 ylabel(h, 'In Situ Temperature (C)')
 ```
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/itp1_section.PNG' height='400'/>
+### Example
 
 
 ## Installation (non-git method)
