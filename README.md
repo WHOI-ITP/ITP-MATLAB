@@ -155,7 +155,7 @@ ylabel(h, 'In Situ Temperature (C)')
 caxis([0.5, 1])
 ```
 
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/temperature_400m.PNG.PNG' height='400'/>
+<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/temperature_400m.PNG' height='400'/>
 
 ## Installation (non-git method)
   1. Download the latest `ITP-MATLAB` package https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip Save it to a temporary location.
