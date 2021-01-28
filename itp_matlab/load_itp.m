@@ -1,4 +1,4 @@
-function results = load_itp(db_path, varargin)
+function profiles = load_itp(db_path, varargin)
 startTime = now;
 p = inputParser;
 addParameter(p, 'system', ['*']);
@@ -64,9 +64,18 @@ else
     pressureFilter = '';
 end
 
-isData = false(size(results, 1), 1);
+% Query the individual profiles
+profiles = repmat(Profile(), length(results), 1);
+emptyProfiles = false(length(results), 1);
+
 for i = 1:size(results, 1)
-    results(i).serialTime = datenum(results(i).date_time, 'yyyy-mm-ddTHH:MM:SS');
+    profiles(i).serial_time = datenum(results(i).date_time,...
+                                    'yyyy-mm-ddTHH:MM:SS');
+    profiles(i).system_number = results(i).system_number;
+    profiles(i).profile_number = results(i).profile_number;
+    profiles(i).latitude = results(i).latitude;
+    profiles(i).longitude = results(i).longitude;
+
     query = [
         'SELECT pressure/10000.0 AS pressure, ',...
         'temperature/10000.0 AS temperature, ',... 
@@ -77,24 +86,21 @@ for i = 1:size(results, 1)
         sprintf('WHERE profile_id = %d %s ORDER BY pressure',...
         results(i).id, pressureFilter)];
     ctd = mksqlite(db, query);
-    results(i).pressure = [ctd.pressure];
-    results(i).temperature = [ctd.temperature];
-    results(i).salinity = [ctd.salinity];
-    if size(ctd, 1) > 0
-        isData(i) = true;
+    if size(ctd, 1) == 0
+        emptyProfiles(i) = true;
+        continue
     end
+    profiles(i).pressure = [ctd.pressure];
+    profiles(i).temperature = [ctd.temperature];
+    profiles(i).salinity = [ctd.salinity];
 end
 
-results = results(isData);
+% Remove empty profiles
+profiles = profiles(~emptyProfiles);
 
-if length(results) > 0
-    [results.('cruise')] = results.('system_number');
-    [results.('station')] = results.('profile_number');
-    [results.('salt')] = results.('salinity');
-    results = rmfield(results, {'id', 'system_number', 'profile_number', 'source', 'date_time','salinity'});
-end
-
-fprintf('%d profiles returned in %0.2f seconds\n', length(results), (now-startTime)*24*60*60);
+fprintf('%d profiles returned in %0.2f seconds\n',...
+        length(profiles),...
+        (now-startTime)*24*60*60);
 mksqlite(db, 'close');
 
 
