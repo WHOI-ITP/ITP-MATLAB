@@ -29,7 +29,7 @@ system | A vector of ITP system numbers to filter for.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
 #### Profile
-A `profile` object has the following methods:
+A `Profile` object has the following methods:
 
 **height**()  
 Calculates height from sea pressure (+ up).
@@ -52,10 +52,8 @@ Calculates Absolute Salinity from Practical Salinity
 ## Examples
 Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path, you need to download the ITP database. See the bottom of this page for instructions on doing both. The .m files for these examples are in the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/tree/master/examples'>examples folder</a>.
 
-### Example - The basics
+### Example - Search the database based on a geographical area and time range, then make a scatter plot of the station locations
 
-
-Search the database based on a geographical area and time range, then make a scatter plot of the station locations
 The following example demonstrates how to retrieve all profiles from 2010 in the region bounded by 70 and 80 degrees North, and 170 to 140 degrees West. 
 
 First specify the path to the database file you downloaded.
@@ -72,23 +70,23 @@ profiles = load_itp(path, 'latitude', [70, 80], 'longitude', [-170, -140], 'date
 ```
 The function returns the requested profiles:
 ```
-1539 profiles returned in 2.68 seconds
+1546 profiles returned in 2.68 seconds
 ```
-`profiles` can be investigated to see the available fields
+`profiles` can be investigated to see the available properties
 ```
 >> profiles
 profiles = 
-  1539×1 struct array with fields:
-    latitude
-    longitude
-    serialTime
-    pressure
-    temperature
-    cruise
-    station
-    salt
+    1546×1 Profile array with properties:
+        system_number
+        profile_number
+        latitude
+        longitude
+        serial_time
+        pressure
+        temperature
+        salinity
 ```
-Using the above data, scatter plot the locations of all the stations on a map (requires MATLAB mapping toolbox)
+Scatter plot the locations of all the stations on a map (requires MATLAB mapping toolbox)
 
 ```
 worldmap([70, 90], [-180, 180]);
@@ -101,7 +99,7 @@ scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
 ```
 PRESSURE_RANGE = [0, 300];
 
-path = 'c:/path/to/database.db';
+path = '../itp_final_2021_01_20.db';
 profiles = load_itp(path, 'system', 1, 'pressure', PRESSURE_RANGE);
 
 % extract latitude and longitude values
@@ -131,9 +129,17 @@ for i = 1:length(profiles)
     I = profiles(i).pressure >= PRESSURE_RANGE(1) & ...
         profiles(i).pressure < PRESSURE_RANGE(2);
     depth_vec = [depth_vec, profiles(i).pressure(I)];
-    temp_vec = [temp_vec, profiles(i).temperature(I)];
+    ptemp = profiles(i).potential_temperature(0);  % reference of 0 dbar
+    temp_vec = [temp_vec, ptemp(I)];
     dist_vec = [dist_vec, repmat(cumulative_distance(i), 1, sum(I))];
 end
+
+% get rid of any NaN values in ptemp
+notNan = ~isnan(temp_vec);
+depth_vec = depth_vec(notNan); 
+temp_vec = temp_vec(notNan); 
+dist_vec = dist_vec(notNan); 
+
 tempInterpolant = scatteredInterpolant(dist_vec', depth_vec', temp_vec');
 temp_grid = tempInterpolant(dist_grid, pres_grid);
 
@@ -144,14 +150,14 @@ axis ij
 h = colorbar;
 xlabel('Drift Distance (km)');
 ylabel('Pressure (mbar)');
-ylabel(h, 'In Situ Temperature (C)')
+ylabel(h, 'Potential Temperature (C)')
 ```
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/itp1_section.PNG' height='400'/>
 
 ### Example - Show a map with temperature at 400m
 
 ```
-path = 'c:/path/to/database.db';
+path = '../itp_final_2021_01_20.db';
 dateRange = [datenum(2006, 1, 1), datenum(2008, 1, 1)];
 
 profiles = load_itp(path,... 
@@ -163,7 +169,9 @@ profiles = load_itp(path,...
 
 temp_400 = zeros(length(profiles), 1);
 for i = 1:length(profiles)
-    temp_400(i) = profiles(i).temperature(1);
+    % calculate potential temperature with a reference pressure of 0
+    ptemp = profiles(i).potential_temperature(0);
+    temp_400(i) = ptemp(1);
 end
 
 longitude = [profiles.longitude];
@@ -174,8 +182,8 @@ worldmap([70, 90], [-180, 180]);
 geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
 scatterm([profiles.latitude], [profiles.longitude], 15, temp_400, 'filled');
 h = colorbar;
-ylabel(h, 'In Situ Temperature (C)')
-caxis([0.5, 1])
+ylabel(h, 'Potential Temperature (C)')
+caxis([0.3, 1])
 ```
 
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/temperature_400m.PNG' height='400'/>

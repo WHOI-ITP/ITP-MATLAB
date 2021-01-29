@@ -10,17 +10,17 @@ profiles = load_itp(path, 'system', 1, 'pressure', PRESSURE_RANGE);
 latitude = [profiles.latitude]';
 longitude = [profiles.longitude]';
 
-% calculate distance between stations in km 
+% calculate distance between profiles in km 
 % the distance function requires mapping toolbox
-station_spacing = distance(...
+profile_spacing = distance(...
     [latitude(1:end-1), longitude(1:end-1)],...
     [latitude(2:end), longitude(2:end)],...
     referenceEllipsoid('GRS80')...
 );
-station_spacing = station_spacing / 1000;
+profile_spacing = profile_spacing / 1000;
 
 % calculate cumulative drift distance
-cumulative_distance = [0; cumsum(station_spacing)];
+cumulative_distance = [0; cumsum(profile_spacing)];
 
 % make grids from distance and pressure
 [dist_grid, pres_grid] = meshgrid(cumulative_distance,...

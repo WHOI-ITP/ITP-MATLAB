@@ -28,4 +28,4 @@ geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
 scatterm([profiles.latitude], [profiles.longitude], 15, temp_400, 'filled');
 h = colorbar;
 ylabel(h, 'Potential Temperature (C)')
-caxis([0.5, 1])
+caxis([0.3, 1])
