@@ -24,12 +24,29 @@ db_path | A path to the database containing ITP profiles.
 latitude | A two element vector specifying the Southern and Northern bounding parallels. Acceptable range is [-90 to 90]
 longitude | A two element vector specifying the Western and Eastern bounding meridians.. Acceptable meridian range is [-180, 180].
 date_time | A two element vector specifying the start and end times of the search. Times must be specified in **MATLAB serial time format**. The search is inclusive of the start date and exclusive of the end date.
-pressure | A two element vector specifying the lowest and highest pressure bounds for returned profiles (in dbar). Note that pressure range only specifies pressure bounds. It does not ensure that a profile will have pressure values up to the bounds.
+pressure | A two element vector specifying the lowest and highest pressure bounds for returned profiles (in dbar). Note that pressure range only specifies pressure bounds. It does not guarantee that a profile will have the full range of pressure values.
 system | A vector of ITP system numbers to filter for.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
 #### Profile
-A `Profile` object has the following methods:
+
+##### Properties
+Each `Profile` object represents a single profile with the following properties:
+
+Property | Description 
+:---|:---
+serial_time | the MATLAB serial time in the UTC time when the profile began  
+latitude  |the latitude where the profile began 
+longitude | the longitude where the profile began 
+system_number | an integer representing the ITP number 
+profile_number | an integer representing the profile number 
+pressure | a vector of pressure values (1xN) 
+temperature | a vector of temperature values (1xN) 
+salinity | a vector of salinity values (1xN) 
+
+##### Methods
+
+`Profile` objects have the following methods:
 
 **height**()  
 Calculates height from sea pressure (+ up).
@@ -52,8 +69,7 @@ Calculates Absolute Salinity from Practical Salinity
 ## Examples
 Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path, you need to download the ITP database. See the bottom of this page for instructions on doing both. The .m files for these examples are in the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/tree/master/examples'>examples folder</a>.
 
-### Example - Search the database based on a geographical area and time range, then make a scatter plot of the station locations
-
+### Example - The Basics
 The following example demonstrates how to retrieve all profiles from 2010 in the region bounded by 70 and 80 degrees North, and 170 to 140 degrees West. 
 
 First specify the path to the database file you downloaded.
@@ -68,26 +84,59 @@ Finally, call the load_itp function with the desired arguments. Note the order t
 ```
 profiles = load_itp(path, 'latitude', [70, 80], 'longitude', [-170, -140], 'date_time', dateRange);
 ```
-The function returns the requested profiles:
+The function returns the requested profiles as a vector of `Profile` objects:
 ```
 1546 profiles returned in 2.68 seconds
 ```
-`profiles` can be investigated to see the available properties
+Every `Profile` object has the following properties. 
 ```
->> profiles
-profiles = 
-    1546×1 Profile array with properties:
-        system_number
-        profile_number
-        latitude
-        longitude
-        serial_time
-        pressure
-        temperature
-        salinity
+>> profiles(1)
+Profile with properties:
+     system_number: 32
+    profile_number: 179
+          latitude: 79.6348
+         longitude: -143.3919
+       serial_time: 7.3414e+05
+          pressure: [1×700 double]
+       temperature: [1×700 double]
+          salinity: [1×700 double]
 ```
-Scatter plot the locations of all the stations on a map (requires MATLAB mapping toolbox)
+The properties can be accessed using dot notation
 
+```
+>> profiles(1).latitude
+ans =
+   79.6348
+```
+
+`Profile` methods can be called to calculate derived values:
+
+```
+>> profiles(1).depth()
+ans =
+  Columns 1 through 11
+   29.8787   30.6701   31.5604   32.6486   33.6379   34.6272   35.6164   36.6057   37.5950   38.5842   39.5734
+  Columns 12 through 22
+   40.5627   41.5519   42.5411   43.5304   44.6185   45.5088   46.4980   47.4872   48.4764   49.4656   50.4548
+  ...
+  Columns 694 through 700
+   714.1130  715.1976  716.1836  717.0709  718.0569  719.1415  719.6345
+```
+Square braces can be used to extract scalar values from the vector of profiles. For example if you want all the latitude values:
+```
+>> [profiles.latitude]
+ans =
+  Columns 1 through 11
+   79.6348   79.6262   79.6067   79.6148   79.6393   79.6474   79.6719   79.6670   79.6522   79.6604   79.6849
+  Columns 12 through 22
+   79.6924   79.7147   79.7108   79.6991   79.6797   79.6213   79.6047   79.5545   79.5564   79.5620   79.5780
+  ...
+  Columns 1541 through 1546
+   75.3289   75.1791   74.9671   74.7733   74.6489   74.5291
+```
+
+### Example - Scatter plot the locations of all the profiles on a map (requires MATLAB mapping toolbox)
+Using the data from the last example, plot the profile locations on a map
 ```
 worldmap([70, 90], [-180, 180]);
 geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
@@ -106,17 +155,17 @@ profiles = load_itp(path, 'system', 1, 'pressure', PRESSURE_RANGE);
 latitude = [profiles.latitude]';
 longitude = [profiles.longitude]';
 
-% calculate distance between stations in km 
+% calculate distance between profiles in km 
 % the distance function requires mapping toolbox
-station_spacing = distance(...
+profile_spacing = distance(...
     [latitude(1:end-1), longitude(1:end-1)],...
     [latitude(2:end), longitude(2:end)],...
     referenceEllipsoid('GRS80')...
 );
-station_spacing = station_spacing / 1000;
+profile_spacing = profile_spacing / 1000;
 
 % calculate cumulative drift distance
-cumulative_distance = [0; cumsum(station_spacing)];
+cumulative_distance = [0; cumsum(profile_spacing)];
 
 % make grids from distance and pressure
 [dist_grid, pres_grid] = meshgrid(cumulative_distance,...
@@ -190,7 +239,7 @@ caxis([0.3, 1])
 
 ## Installation
 #### Requirements
-ITP-MATLAB depends on a free, 3rd party open-source package called **Mksqlite**. The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating derived values (e.g. density, potential temperature, etc), but it is not strictly required to query the database. However without it, you will be limited to accessing a profile's pressure, in-situ temperature, and practical salinity.
+ITP-MATLAB depends on an open-source package called **Mksqlite**. The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating derived values (e.g. density, potential temperature, etc), but it is not strictly required to query the database. However without it, you will be limited to accessing a profile's pressure, in-situ temperature, and practical salinity.
 
 #### Windows users
   1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip'>latest ITP-MATLAB package</a>. 
