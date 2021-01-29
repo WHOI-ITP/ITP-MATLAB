@@ -33,9 +33,17 @@ for i = 1:length(profiles)
     I = profiles(i).pressure >= PRESSURE_RANGE(1) & ...
         profiles(i).pressure < PRESSURE_RANGE(2);
     depth_vec = [depth_vec, profiles(i).pressure(I)];
-    temp_vec = [temp_vec, profiles(i).temperature(I)];
+    ptemp = profiles(i).potential_temperature(0);  % reference of 0 dbar
+    temp_vec = [temp_vec, ptemp(I)];
     dist_vec = [dist_vec, repmat(cumulative_distance(i), 1, sum(I))];
 end
+
+% get rid of any NaN values in ptemp
+notNan = ~isnan(temp_vec);
+depth_vec = depth_vec(notNan); 
+temp_vec = temp_vec(notNan); 
+dist_vec = dist_vec(notNan); 
+
 tempInterpolant = scatteredInterpolant(dist_vec', depth_vec', temp_vec');
 temp_grid = tempInterpolant(dist_grid, pres_grid);
 
@@ -46,4 +54,4 @@ axis ij
 h = colorbar;
 xlabel('Drift Distance (km)');
 ylabel('Pressure (mbar)');
-ylabel(h, 'In Situ Temperature (C)')
+ylabel(h, 'Potential Temperature (C)')

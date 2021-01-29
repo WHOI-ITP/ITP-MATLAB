@@ -2,7 +2,7 @@
 The Ice Tethered Profiler (ITP) is an autonomous instrument that vertically profiles the water column under sea ice. The ITP collects measurements of conductivity, temperature, and depth. Data are automatically transmitted back via satellite.  [Learn More](http://www.whoi.edu/itp "Learn More")
 
 ## Motivation
-To date, 119 ITP systems have been deployed, and more than 130000 water profiles have been collected. As these data continue to accumulate, and the number of users working with the data increases, the need has become apparent for a set of tools to access, search for, and manipulate ITP data.
+To date, 119 ITP systems have been deployed, and more than 130000 water profiles have been collected. As these data continue to accumulate, and the number of users working with the data increases, the need has become apparent for a set of tools to search for and access ITP data.
 
 ## Features
   - Easily and rapidly search all available ITP profiles
@@ -12,12 +12,12 @@ To date, 119 ITP systems have been deployed, and more than 130000 water profiles
     - date range
     - pressure range
     - system number
-  - Profiles are returned as a MATLAB structured array
+  - Profiles matching the search criteria will be returned as an array of `Profile` objects. Profile objects have built in methods for calculating many common derived values such as potential temperature and depth.
 
 ## Usage
 #### load\_itp(db\_path, [arguments])
-`load_itp` is the primary function used to retrieve ITP data from the database. It accepts a variety of filtering arguments. **Please pay attention to the order in which the bounds are specified for the various arguments.**
-##### Arguments
+`load_itp` is the primary function used to retrieve ITP data from the database. It accepts a variety of filtering arguments. **Please pay attention to the order in which the bounds are specified for the various arguments.** `load_itp` returns a vector of `Profile` objects.
+##### Search Arguments
 Argument | Description
 :--- | :---
 db_path | A path to the database containing ITP profiles.
@@ -28,11 +28,34 @@ pressure | A two element vector specifying the lowest and highest pressure bound
 system | A vector of ITP system numbers to filter for.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
+#### Profile
+A `profile` object has the following methods:
+
+**height**()  
+Calculates height from sea pressure (+ up).
+
+**depth**()  
+Calculates depth from sea pressure; simply negative height (+ down).
+
+**potential\_temperature**(*pressure_reference*)  
+Calculates potential temperature from in-situ temperature. You must specify a reference pressure.
+
+**density**()  
+Calculates in-situ density
+
+**conservative\_temperature**()  
+Calculates Conservative Temperature from in-situ temperature
+
+**absolute\_salinity**()  
+Calculates Absolute Salinity from Practical Salinity
 
 ## Examples
 Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path, you need to download the ITP database. See the bottom of this page for instructions on doing both. The .m files for these examples are in the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/tree/master/examples'>examples folder</a>.
 
-### Example - Search the database based on a geographical area and time range, then make a scatter plot of the station locations
+### Example - The basics
+
+
+Search the database based on a geographical area and time range, then make a scatter plot of the station locations
 The following example demonstrates how to retrieve all profiles from 2010 in the region bounded by 70 and 80 degrees North, and 170 to 140 degrees West. 
 
 First specify the path to the database file you downloaded.
@@ -158,14 +181,19 @@ caxis([0.5, 1])
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/temperature_400m.PNG' height='400'/>
 
 ## Installation
+#### Requirements
+ITP-MATLAB depends on a free, 3rd party open-source package called **Mksqlite**. The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating derived values (e.g. density, potential temperature, etc), but it is not strictly required to query the database. However without it, you will be limited to accessing a profile's pressure, in-situ temperature, and practical salinity.
+
 #### Windows users
-  1. Download the latest `ITP-MATLAB` package https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip 
+  1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip'>latest ITP-MATLAB package</a>. 
   2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`.
-  3. Download the itp\_**final**\_yyyy\_mm\_dd.zip database, from here: https://www.dropbox.com/sh/5u68j8h5eiamk1x/AABZTJd3Hx2y-GAsoBKyZo01a?dl=0 Unzip it to your desired location, and take note of its path. yyyy\_mm\_dd is the date the database was built.
-  4. In MATLAB, type `pathtool` in the command window. 
-  5. Click the `Add Folder...` button.
-  6. Browse to the ITP-MATLAB folder from step 2 and add the `itp_matlab` and `mksqlite-1.5` sub-folders to the path.
-  7. Click `Save` and close the path window.
+  3. Download the <a href='https://www.dropbox.com/sh/5u68j8h5eiamk1x/AABZTJd3Hx2y-GAsoBKyZo01a?dl=0'>latest ITP database</a>. Unzip it to your desired location, and take note of its path. yyyy\_mm\_dd is the date the database was built.
+  4. Download the <a href='http://www.teos-10.org/software.htm'>TEOS-10 Gibbs Seawater Toolbox</a>.
+  5. In MATLAB, type `pathtool` in the command window. 
+  6. Click the `Add Folder...` button.
+  7. Browse to the ITP-MATLAB folder from step 2 and add the `itp_matlab` and `mksqlite-1.5` folders to the path.
+  8. Click `Add with Subfolders...` and select the `gsw_matlab_v3_06_12` folder.
+  9. Click `Save` and close the path window.
   
 #### Mac Users
 Installation steps are the same, but you must compile mksqlite from source. Find the latest release here: https://github.com/AndreasMartin72/mksqlite/tags Run buildit.m to compile to a MEX-DLL. Unfortunately I don't have a Mac so I'm unable to test this. Please open an issue if you have trouble and I will see if I can help.

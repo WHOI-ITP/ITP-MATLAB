@@ -14,7 +14,9 @@ profiles = load_itp(path,...
 
 temp_400 = zeros(length(profiles), 1);
 for i = 1:length(profiles)
-    temp_400(i) = profiles(i).temperature(1);
+    % calculate potential temperature with a reference pressure of 0
+    ptemp = profiles(i).potential_temperature(0);
+    temp_400(i) = ptemp(1);
 end
 
 longitude = [profiles.longitude];
@@ -25,5 +27,5 @@ worldmap([70, 90], [-180, 180]);
 geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
 scatterm([profiles.latitude], [profiles.longitude], 15, temp_400, 'filled');
 h = colorbar;
-ylabel(h, 'In Situ Temperature (C)')
+ylabel(h, 'Potential Temperature (C)')
 caxis([0.5, 1])
