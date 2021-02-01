@@ -48,6 +48,9 @@ salinity | a vector of salinity values (1xN)
 
 `Profile` objects have the following methods:
 
+**datetime**()
+Returns the start time of the profile in MATLAB `datetime` format 
+
 **height**()  
 Calculates height from sea pressure (+ up).
 

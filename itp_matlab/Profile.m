@@ -11,6 +11,13 @@ classdef Profile
     end
     
     methods
+        function out = datetime(obj)
+            out = NaT(size(obj));
+            for i = 1:length(obj)
+                out(i) = datetime(...
+                    obj(i).serial_time, 'ConvertFrom', 'datenum');
+            end
+        end
         function out = height(obj)
             out = gsw_z_from_p(obj.pressure, obj.latitude);
         end
