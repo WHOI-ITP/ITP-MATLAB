@@ -58,10 +58,10 @@ Calculates height from sea pressure (+ up).
 Calculates depth from sea pressure; simply negative height (+ down).
 
 **potential\_temperature**(*[p_ref]*)  
-Calculates potential temperature at a specified reference pressure, `p_ref`. If p_ref is omitted, a default value of 0 will be used.  
+Calculates potential temperature at a specified reference pressure, `p_ref`. If p_ref is omitted, a default value of 0 is used.  
 
 **potential\_density**(*[p_ref]*)  
-Calculates potential density at a specified reference pressure, `p_ref`. If p_ref is omitted, a default value of 0 will be used.  
+Calculates potential density at a specified reference pressure, `p_ref`. If p_ref is omitted, a default value of 0 is used.  
 
 **conservative\_temperature**()  
 Calculates Conservative Temperature  
@@ -155,7 +155,7 @@ ylabel('Depth (m)')
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/profile.PNG' height='400'/>
 
 
-### Example - Plot Potential Temperature vs Depth 
+### Example - Over-plot Potential Temperature vs Depth for all profile
 Plot all data points between 0 and 150 meters for ITP 10
 ```
 path = '../itp_final_2021_01_20.db';
@@ -179,9 +179,18 @@ ylim(DEPTH_RANGE);
 ```
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/overplot.PNG' height='400'/>
 
-### Example - Scatter plot the locations of all the profiles on a map (requires MATLAB mapping toolbox)
-Using the data from the last example, plot the profile locations on a map
+### Example - Show profile locations on a map (requires MATLAB mapping toolbox)
+Show the locations of all profiles in the Beaufort Gyre region from 2019
 ```
+path = '../itp_final_2021_01_20.db';
+dateRange = [datenum(2019, 1, 1), datenum(2020, 1, 1)];
+
+profiles = load_itp(path,... 
+                    'latitude', [70, 80],... 
+                    'longitude', [-170, -140],... 
+                    'date_time', dateRange);
+
+figure('Color', 'white')
 worldmap([70, 90], [-180, 180]);
 geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
 scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
