@@ -40,6 +40,9 @@ classdef Profile
             );
         end
         function out = potential_density(obj, p_ref)
+            if ~exist('p_ref', 'var')
+                p_ref = 0;
+            end
             out = gsw_rho(...
                 obj.absolute_salinity(),... 
                 obj.conservative_temperature(),... 
@@ -47,6 +50,9 @@ classdef Profile
             );
         end
         function out = potential_temperature(obj, p_ref)
+            if ~exist('p_ref', 'var')
+                p_ref = 0;
+            end
             out = gsw_pt_from_t(...
                 obj.absolute_salinity(),...
                 obj.temperature,...

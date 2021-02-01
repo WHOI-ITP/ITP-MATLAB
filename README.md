@@ -57,11 +57,11 @@ Calculates height from sea pressure (+ up).
 **depth**()  
 Calculates depth from sea pressure; simply negative height (+ down).
 
-**potential\_temperature**(*p_ref*)  
-Calculates potential temperature at a specified reference pressure, `p_ref`
+**potential\_temperature**(*[p_ref]*)  
+Calculates potential temperature at a specified reference pressure, `p_ref`. If p_ref is omitted, a default value of 0 will be used.  
 
-**potential\_density**(*p_ref*)  
-Calculates potential density at a specified reference pressure, `p_ref` 
+**potential\_density**(*[p_ref]*)  
+Calculates potential density at a specified reference pressure, `p_ref`. If p_ref is omitted, a default value of 0 will be used.  
 
 **conservative\_temperature**()  
 Calculates Conservative Temperature  
@@ -91,7 +91,7 @@ The function returns the requested profiles as a vector of `Profile` objects:
 ```
 1546 profiles returned in 2.68 seconds
 ```
-Every `Profile` object has the following properties. 
+You can investigate a `Profile` object to see its [properties](#properties). 
 ```
 >> profiles(1)
 Profile with properties:
@@ -112,7 +112,7 @@ ans =
    79.6348
 ```
 
-`Profile` methods can be called to calculate derived values:
+`Profile` [methods](#methods) can be called to calculate derived values:
 
 ```
 >> profiles(1).depth()
@@ -137,6 +137,47 @@ ans =
   Columns 1541 through 1546
    75.3289   75.1791   74.9671   74.7733   74.6489   74.5291
 ```
+
+### Example - Plot a Potential Temperature vs Depth profile
+Plot the first profile from ITP 10
+```
+path = '../itp_final_2021_01_20.db';
+profiles = load_itp(path, 'system', 10);
+
+figure('Color', 'white')
+plot(profiles(1).potential_temperature(0), profiles(1).depth)
+axis ij;
+
+xlabel('Potential Temperature (°C)')
+ylabel('Depth (m)')
+```
+
+<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/profile.PNG' height='400'/>
+
+
+### Example - Plot Potential Temperature vs Depth 
+Plot all data points between 0 and 150 meters for ITP 10
+```
+path = '../itp_final_2021_01_20.db';
+DEPTH_RANGE = [0, 150];
+
+profiles = load_itp(...
+    path,...
+    'system', 10,...
+    'pressure', [0, 1]...
+);
+
+figure('Color', 'white')
+ax = axes;
+hold(ax, 'on')
+
+for i = 1:length(profiles)
+    plot(profiles(i).potential_temperature(0), profiles(i).depth, 'b.')
+end
+axis ij;
+ylim(DEPTH_RANGE);
+```
+<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/overplot.PNG' height='400'/>
 
 ### Example - Scatter plot the locations of all the profiles on a map (requires MATLAB mapping toolbox)
 Using the data from the last example, plot the profile locations on a map

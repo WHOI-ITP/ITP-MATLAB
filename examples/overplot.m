@@ -21,6 +21,5 @@ end
 axis ij;
 ylim(DEPTH_RANGE);
 
-
 xlabel('Potential Temperature (°C)')
 ylabel('Depth (m)')
