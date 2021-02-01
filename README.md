@@ -2,53 +2,53 @@
 The Ice Tethered Profiler (ITP) is an autonomous instrument that vertically profiles the water column under sea ice. The ITP collects measurements of conductivity, temperature, and depth. Data are automatically transmitted back via satellite.  [Learn More](http://www.whoi.edu/itp "Learn More")
 
 ## Motivation
-To date, 119 ITP systems have been deployed, and more than 130000 water profiles have been collected. As these data continue to accumulate, and the number of users working with the data increases, the need has become apparent for a set of tools to search for and access ITP data.
+To date, 119 ITP systems have been deployed, and more than 130000 water profiles have been collected. As these data continue to accumulate, and the number of users working with the data increases, the need has become apparent for a set of tools to search for and access ITP data. 
 
 ## Features
-  - Easily and rapidly search all available ITP profiles
-  - Search profiles based on
+  - Easily and rapidly search all ITP profiles
+  - Search for profiles based on
     - latitude range
     - longitude range
     - date range
     - pressure range
     - system number
-  - Profiles matching the search criteria will be returned as an array of `Profile` objects. Profile objects have built in methods for calculating many common derived values such as potential temperature and depth.
+  - Profiles matching the search criteria will be returned as an array of `Profile` objects. Profile objects have built in methods for calculating many common derived values such as depth and potential temperature. 
 
 ## Usage
 #### load\_itp(db\_path, [arguments])
-`load_itp` is the primary function used to retrieve ITP data from the database. It accepts a variety of filtering arguments. **Please pay attention to the order in which the bounds are specified for the various arguments.** `load_itp` returns a vector of `Profile` objects.
+`load_itp` is the primary function used to retrieve ITP data from the database. It accepts a variety of filtering arguments. **Please pay attention to the order in which the bounds are specified for the various arguments.** `load_itp` returns a vector of `Profile` objects that match the search criteria.
 ##### Search Arguments
 Argument | Description
 :--- | :---
 db_path | A path to the database containing ITP profiles.
 latitude | A two element vector specifying the Southern and Northern bounding parallels. Acceptable range is [-90 to 90]
-longitude | A two element vector specifying the Western and Eastern bounding meridians.. Acceptable meridian range is [-180, 180].
+longitude | A two element vector specifying the Western and Eastern bounding meridians.  Acceptable meridian range is [-180, 180].
 date_time | A two element vector specifying the start and end times of the search. Times must be specified in **MATLAB serial time format**. The search is inclusive of the start date and exclusive of the end date.
 pressure | A two element vector specifying the lowest and highest pressure bounds for returned profiles (in dbar). Note that pressure range only specifies pressure bounds. It does not guarantee that a profile will have the full range of pressure values.
 system | A vector of ITP system numbers to filter for.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
 #### Profile
-
+The `load_itp` function returns an array of `Profile` objects.
 ##### Properties
 Each `Profile` object represents a single profile with the following properties:
 
 Property | Description 
 :---|:---
 serial_time | the MATLAB serial time in the UTC time when the profile began  
-latitude  |the latitude where the profile began 
-longitude | the longitude where the profile began 
+latitude  |the latitude where the profile started 
+longitude | the longitude where the profile started 
 system_number | an integer representing the ITP number 
 profile_number | an integer representing the profile number 
-pressure | a vector of pressure values (1xN) 
-temperature | a vector of temperature values (1xN) 
-salinity | a vector of salinity values (1xN) 
+pressure | a vector of pressure values (dbar) (1xN) 
+temperature | a vector of in-situ temperature values (°C) (1xN) 
+salinity | a vector of practical salinity values (1xN) 
 
 ##### Methods
 
 `Profile` objects have the following methods:
 
-**datetime**()
+**datetime**()  
 Returns the start time of the profile in MATLAB `datetime` format 
 
 **height**()  
@@ -57,17 +57,17 @@ Calculates height from sea pressure (+ up).
 **depth**()  
 Calculates depth from sea pressure; simply negative height (+ down).
 
-**potential\_temperature**(*pressure_reference*)  
-Calculates potential temperature from in-situ temperature. You must specify a reference pressure.
+**potential\_temperature**(*p_ref*)  
+Calculates potential temperature at a specified reference pressure, `p_ref`
 
-**density**()  
-Calculates in-situ density
+**potential\_density**(*p_ref*)  
+Calculates potential density at a specified reference pressure, `p_ref` 
 
 **conservative\_temperature**()  
-Calculates Conservative Temperature from in-situ temperature
+Calculates Conservative Temperature  
 
 **absolute\_salinity**()  
-Calculates Absolute Salinity from Practical Salinity
+Calculates Absolute Salinity  
 
 ## Examples
 Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path, you need to download the ITP database. See the bottom of this page for instructions on doing both. The .m files for these examples are in the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/tree/master/examples'>examples folder</a>.
@@ -75,7 +75,7 @@ Once you have downloaded the ITP-MATLAB package and added it to your MATLAB path
 ### Example - The Basics
 The following example demonstrates how to retrieve all profiles from 2010 in the region bounded by 70 and 80 degrees North, and 170 to 140 degrees West. 
 
-First specify the path to the database file you downloaded.
+First specify the path to the database file you downloaded. This will be used in the `load_itp` function call.
 ```
 path = 'c:/path/to/database.db';
 ```
