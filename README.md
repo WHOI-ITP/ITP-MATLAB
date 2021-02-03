@@ -197,7 +197,8 @@ scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
 ```
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/scatter.PNG' height='400'/>
 
-### Example - Plot a temperature section for the top 300 meters of ITP 1
+### Example - Plot a potential temperature section 
+Contour plot potential temperature for the top 300 meters of ITP 1
 ```
 PRESSURE_RANGE = [0, 300];
 
