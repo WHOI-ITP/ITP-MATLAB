@@ -3,14 +3,13 @@
 
 classdef FunctionalTests < matlab.unittest.TestCase
     properties
-        path = 'itp_final_2021_02_02.db';
         profiles = NaN;
-        profile_1 = NaN;
     end
     
     methods(TestClassSetup)
         function loadDatabase(testCase)
-            testCase.profiles = load_itp(testCase.path, 'system', 10);
+            path = 'itp_final_2021_02_02.db';
+            testCase.profiles = load_itp(path, 'system', 10);
         end
     end
     
