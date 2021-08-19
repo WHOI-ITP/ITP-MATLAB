@@ -181,10 +181,10 @@ ylim(DEPTH_RANGE);
 <img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/overplot.PNG' height='400'/>
 
 ### Example - Show profile locations on a map (requires MATLAB mapping toolbox)
-Show the locations of all profiles in the Beaufort Gyre region from 2019
+Show the locations of all profiles in the Beaufort Gyre region from 2010
 ```
 path = '../itp_final_2021_01_20.db';
-dateRange = [datenum(2019, 1, 1), datenum(2020, 1, 1)];
+dateRange = [datenum(2010, 1, 1), datenum(2011, 1, 1)];
 
 profiles = load_itp(path,... 
                     'latitude', [70, 80],... 
