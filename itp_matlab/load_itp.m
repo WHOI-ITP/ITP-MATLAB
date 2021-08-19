@@ -6,7 +6,8 @@ addParameter(p, 'latitude', [-90 90]);
 addParameter(p, 'longitude', [-180 180]);
 addParameter(p, 'date_time', [0 datenum(2100,1,1)]);
 addParameter(p, 'pressure', [0 1000000]);
-addParameter(p, 'max_results', 10000); 
+addParameter(p, 'max_results', 10000);
+addParameter(p, 'extra_variables', []);
 parse(p, varargin{:});
 
 query = 'SELECT * FROM profiles WHERE';
@@ -21,7 +22,7 @@ if notDefault('system', p)
 end
 
 if notDefault('latitude', p)
-    latFilter = sprintf(' latitude > %f AND latitude < %f AND', p.Results.latitude);
+    latFilter = sprintf(' (latitude > %f AND latitude < %f) AND', p.Results.latitude);
     query = [query, latFilter];
 end
 
@@ -38,8 +39,23 @@ end
 
 if notDefault('date_time', p)
     time = {datestr(p.Results.date_time(1), 'yyyy-mm-ddTHH:MM:SS'), datestr(p.Results.date_time(2), 'yyyy-mm-ddTHH:MM:SS')};
-    timeFilter = sprintf(' date_time >= "%s" AND date_time < "%s"', time{1}, time{2});
+    timeFilter = sprintf(' date_time >= "%s" AND date_time < "%s" AND', time{1}, time{2});
     query = [query, timeFilter];
+end
+
+if notDefault('extra_variables', p)
+    extra_names = '';
+    for i = 1:length(p.Results.extra_variables)
+        extra_names = [extra_names, '"', p.Results.extra_variables{i}, '"', ','];
+    end
+    extra_names(end) = '';
+    sql = sprintf([...
+        ' profiles.id IN (SELECT profile_id FROM profile_extra_variables ', ...
+        'INNER JOIN variable_names ', ...
+        'ON profile_extra_variables.variable_id == variable_names.id ', ...
+        'WHERE variable_names.name IN (%s)) AND']...
+    , extra_names);
+    query = [query, sql];
 end
 
 if strcmp(query(end-3:end), ' AND')
@@ -93,6 +109,22 @@ for i = 1:size(results, 1)
     profiles(i).pressure = [ctd.pressure];
     profiles(i).temperature = [ctd.temperature];
     profiles(i).salinity = [ctd.salinity];
+    
+    if notDefault('extra_variables', p)
+        for j = 1:length(p.Results.extra_variables)
+            sql = sprintf([...
+                'SELECT value/10000.0 val FROM ctd ', ...
+                'LEFT JOIN other_variables ', ...
+            	'ON ctd.id == other_variables.ctd_id AND variable_id == ', ...
+            	'(SELECT id FROM variable_names WHERE name == "%s") ', ...
+            	'WHERE ctd.profile_id == %d ', ...
+            	'ORDER BY pressure'],...
+                p.Results.extra_variables{j}, results(i).id);
+            this_variable = mksqlite(db, sql);
+            profiles(i).other_variables.(p.Results.extra_variables{j}) = [this_variable.val];
+        end
+    end
+    
 end
 
 % Remove empty profiles
@@ -102,23 +134,6 @@ fprintf('%d profiles returned in %0.2f seconds\n',...
         length(profiles),...
         (now-startTime)*24*60*60);
 mksqlite(db, 'close');
-
-
-function query = build_profile_query(other_variables)
-query = [
-    'SELECT pressure/10000.0 AS pressure, ',...
-    'temperature/10000.0 AS temperature, ',... 
-    'salinity/10000.0 AS salinity '];
-
-for i = 1:length(other_variables)
-    query = [query, sprintf(', v%d.value/10000.0 AS %s ', i, other_variables(i).name)];
-end
-query = [query, 'FROM ctd '];
-for i = 1:length(other_variables)
-    query = [query, ...
-        sprintf('LEFT JOIN other_variables v%d ON ctd.id == v%d.ctd_id AND v%d.variable_id == %d ',...
-        i, i, i, other_variables(i).id)];
-end
 
 
 function state = notDefault(field, parameters)
