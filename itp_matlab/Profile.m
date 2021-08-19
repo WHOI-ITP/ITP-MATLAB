@@ -8,6 +8,7 @@ classdef Profile
         pressure
         temperature
         salinity
+        other_variables
     end
     
     methods
