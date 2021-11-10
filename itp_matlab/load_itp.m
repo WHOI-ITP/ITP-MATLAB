@@ -6,6 +6,7 @@ addParameter(p, 'latitude', [-90 90]);
 addParameter(p, 'longitude', [-180 180]);
 addParameter(p, 'direction', []);
 addParameter(p, 'date_time', [0 datenum(2100,1,1)]);
+addParameter(p, 'month', []);
 addParameter(p, 'pressure', [0 1000000]);
 addParameter(p, 'max_results', 10000);
 addParameter(p, 'extra_variables', []);
@@ -47,6 +48,12 @@ if notDefault('date_time', p)
     time = {datestr(p.Results.date_time(1), 'yyyy-mm-ddTHH:MM:SS'), datestr(p.Results.date_time(2), 'yyyy-mm-ddTHH:MM:SS')};
     timeFilter = sprintf(' date_time >= "%s" AND date_time < "%s" AND', time{1}, time{2});
     query = [query, timeFilter];
+end
+
+if notDefault('month', p)
+    monthFilter = sprintf(' strftime("%%m", date_time) IN (%s) AND', ...
+        format_date_range(p.Results.month));
+    query = [query, monthFilter];
 end
 
 if notDefault('extra_variables', p)
@@ -143,6 +150,14 @@ fprintf('%d profiles returned in %0.2f seconds\n',...
         length(profiles),...
         (now-startTime)*24*60*60);
 mksqlite(db, 'close');
+
+
+function output = format_date_range(input)
+if ~isfloat(input)
+    error('Date range must be a vector of integers');
+end
+output = sprintf('"%02d",', input);
+output(end) = [];
 
 
 function cell_array = make_cell(input)
