@@ -4,7 +4,9 @@ p = inputParser;
 addParameter(p, 'system', ['*']);
 addParameter(p, 'latitude', [-90 90]);
 addParameter(p, 'longitude', [-180 180]);
+addParameter(p, 'direction', []);
 addParameter(p, 'date_time', [0 datenum(2100,1,1)]);
+addParameter(p, 'month', []);
 addParameter(p, 'pressure', [0 1000000]);
 addParameter(p, 'max_results', 10000);
 addParameter(p, 'extra_variables', []);
@@ -37,16 +39,29 @@ if notDefault('longitude', p)
     query = [query, lonFilter];
 end
 
+if notDefault('direction', p)
+    dirFilter = sprintf(' direction = "%s" AND', p.Results.direction);
+    query = [query, dirFilter];
+end
+
 if notDefault('date_time', p)
     time = {datestr(p.Results.date_time(1), 'yyyy-mm-ddTHH:MM:SS'), datestr(p.Results.date_time(2), 'yyyy-mm-ddTHH:MM:SS')};
     timeFilter = sprintf(' date_time >= "%s" AND date_time < "%s" AND', time{1}, time{2});
     query = [query, timeFilter];
 end
 
+if notDefault('month', p)
+    monthFilter = sprintf(' strftime("%%m", date_time) IN (%s) AND', ...
+        format_date_range(p.Results.month));
+    query = [query, monthFilter];
+end
+
 if notDefault('extra_variables', p)
     extra_names = '';
-    for i = 1:length(p.Results.extra_variables)
-        extra_names = [extra_names, '"', p.Results.extra_variables{i}, '"', ','];
+    extra_variables = make_cell(p.Results.extra_variables);
+
+    for i = 1:length(extra_variables)
+        extra_names = [extra_names, '"', extra_variables{i}, '"', ','];
     end
     extra_names(end) = '';
     sql = sprintf([...
@@ -91,6 +106,7 @@ for i = 1:size(results, 1)
     profiles(i).profile_number = results(i).profile_number;
     profiles(i).latitude = results(i).latitude;
     profiles(i).longitude = results(i).longitude;
+    profiles(i).direction = results(i).direction;
 
     query = [
         'SELECT pressure/10000.0 AS pressure, ',...
@@ -111,7 +127,7 @@ for i = 1:size(results, 1)
     profiles(i).salinity = [ctd.salinity];
     
     if notDefault('extra_variables', p)
-        for j = 1:length(p.Results.extra_variables)
+        for j = 1:length(extra_variables)
             sql = sprintf([...
                 'SELECT value/10000.0 val FROM ctd ', ...
                 'LEFT JOIN other_variables ', ...
@@ -119,9 +135,9 @@ for i = 1:size(results, 1)
             	'(SELECT id FROM variable_names WHERE name == "%s") ', ...
             	'WHERE ctd.profile_id == %d ', ...
             	'ORDER BY pressure'],...
-                p.Results.extra_variables{j}, results(i).id);
+                extra_variables{j}, results(i).id);
             this_variable = mksqlite(db, sql);
-            profiles(i).other_variables.(p.Results.extra_variables{j}) = [this_variable.val];
+            profiles(i).other_variables.(extra_variables{j}) = [this_variable.val];
         end
     end
     
@@ -134,6 +150,24 @@ fprintf('%d profiles returned in %0.2f seconds\n',...
         length(profiles),...
         (now-startTime)*24*60*60);
 mksqlite(db, 'close');
+
+
+function output = format_date_range(input)
+if ~isfloat(input)
+    error('Date range must be a vector of integers');
+end
+output = sprintf('"%02d",', input);
+output(end) = [];
+
+
+function cell_array = make_cell(input)
+if ischar(input)
+    cell_array = {input};
+elseif iscell(input)
+    cell_array = input;
+else
+    error('Unknown input type')
+end
 
 
 function state = notDefault(field, parameters)

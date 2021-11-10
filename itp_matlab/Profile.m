@@ -4,6 +4,7 @@ classdef Profile
         profile_number
         latitude
         longitude
+        direction
         serial_time
         pressure
         temperature

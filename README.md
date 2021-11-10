@@ -24,8 +24,10 @@ db_path | A path to the database containing ITP profiles.
 latitude | A two element vector specifying the Southern and Northern bounding parallels. Acceptable range is [-90 to 90]
 longitude | A two element vector specifying the Western and Eastern bounding meridians.  Acceptable meridian range is [-180, 180].
 date_time | A two element vector specifying the start and end times of the search. Times must be specified in **MATLAB serial time format**. The search is inclusive of the start date and exclusive of the end date.
-pressure | A two element vector specifying the lowest and highest pressure bounds for returned profiles (in dbar). Note that pressure range only specifies pressure bounds. It does not guarantee that a profile will have the full range of pressure values.
-system | A vector of ITP system numbers to filter for.
+month | A vector containing numeric months to include in search. Months do not have to be consecutive. `month` is compatible with `date_time` search. E.g. passing an argument of [1:3, 12] would return profiles from Jan, Feb, Mar, Dec.
+pressure | A two element vector specifying the lowest and highest pressure bounds for returned profiles (in dbar). Note that pressure range only specifies pressure bounds. It does not guarantee that a profile will have the full range of pressure values
+system | A vector of ITP system numbers to filter for
+direction | A string specifying the direction the profiler was moving when the profile was taken. Acceptable values are 'up' or 'down'
 extra_variables | a cell array of "extra variables" that must be present in the profiles. If multiple variables are provided, the result will be an OR query (i.e. the results will have at least one of the variables, but not necessarily all). Supported values are: dissolved_oxygen, nacm, vert, east, north, par, turbidity, cdom, chlorophyll_a.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
