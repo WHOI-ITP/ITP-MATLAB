@@ -12,6 +12,8 @@ addParameter(p, 'max_results', 10000);
 addParameter(p, 'extra_variables', []);
 parse(p, varargin{:});
 
+NANVAL = 2^30;
+
 query = 'SELECT * FROM profiles WHERE';
 
 if notDefault('system', p)
@@ -135,9 +137,12 @@ for i = 1:size(results, 1)
             	'(SELECT id FROM variable_names WHERE name == "%s") ', ...
             	'WHERE ctd.profile_id == %d ', ...
             	'ORDER BY pressure'],...
-                extra_variables{j}, results(i).id);
-            this_variable = mksqlite(db, sql);
-            profiles(i).other_variables.(extra_variables{j}) = [this_variable.val];
+                extra_variables{j}, results{i,1});
+            this_variable = cell2mat(fetch(db, sql));
+            this_variable(this_variable==-9999.99) = NaN;
+            if ~all(isnan(this_variable))
+                profiles(i).other_variables.(extra_variables{j}) = this_variable;
+            end
         end
     end
     

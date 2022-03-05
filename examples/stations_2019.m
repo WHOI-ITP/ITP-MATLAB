@@ -1,7 +1,7 @@
 clc
 clear
 
-path = '../itp_final_2021_01_20.db';
+path = 'J:/ITP Data/itp_final_2021_11_09.db';
 dateRange = [datenum(2019, 1, 1), datenum(2020, 1, 1)];
 
 profiles = load_itp(path,... 

@@ -2,7 +2,7 @@ clc
 clear
 
 
-path = '../itp_final_2021_01_20.db';
+path = 'J:/ITP Data/itp_final_2021_11_09.db';
 profiles = load_itp(path, 'system', 10);
 
 figure('Color', 'white')
