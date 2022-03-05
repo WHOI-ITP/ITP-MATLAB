@@ -300,19 +300,29 @@ ITP-MATLAB requires MATALAB's database toolbox.
 The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating 
 derived values (e.g. density, potential temperature, etc.).
 
-#### Install MATLAB 
+#### Install the MATLAB Database Toolbox
+Open MATLAB and from the top ribbon bar select "Home" > "Add-Ons"  
+<img src='resources/dbtoolbox-1.png' width='600'/>  
 
+In the add-on explorer, search for "Database Toolbox"  
+<img src='resources/dbtoolbox-2.png' width='600'/>  
 
-#### Windows users
-  1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip'>latest ITP-MATLAB package</a>. 
-  2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`.
+From the search results, click "Database Toolbox" by MathWorks (it 
+will likely be the first result)  
+<img src='resources/dbtoolbox-3.png' width='600'/>  
+
+Click the "Install" button and follow the prompts to install the toolbox. 
+Note you will need to log in to your MathWorks account.  
+<img src='resources/dbtoolbox-4.png' width='600'/>
+
+#### Install ITP-MATLAB and TEOS-10
+  1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/refs/heads/dbtoolbox.zip'>ITP-MATLAB package</a>. 
+  2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`
   3. Download the <a href='https://www.dropbox.com/sh/5u68j8h5eiamk1x/AABZTJd3Hx2y-GAsoBKyZo01a?dl=0'>latest ITP database</a>. Unzip it to your desired location, and take note of its path. yyyy\_mm\_dd is the date the database was built.
-  4. Download the <a href='http://www.teos-10.org/software.htm'>TEOS-10 Gibbs Seawater Toolbox</a>.
+  4. Download and unzip  the <a href='http://www.teos-10.org/software/gsw_matlab_v3_06_14.zip'>TEOS-10 Gibbs Seawater Toolbox</a>.
   5. In MATLAB, type `pathtool` in the command window. 
   6. Click the `Add Folder...` button.
-  7. Browse to the ITP-MATLAB folder from step 2 and add the `itp_matlab` and `mksqlite-1.5` folders to the path.
-  8. Click `Add with Subfolders...` and select the `gsw_matlab_v3_06_12` folder.
+  7. Browse to the ITP-MATLAB folder from step 2 and add the `itp_matlab` folder to the path.
+  8. Click `Add with Subfolders...` and select the `gsw_matlab_v3_06_14` folder.
   9. Click `Save` and close the path window.
   
-#### Mac Users
-Installation steps are the same, but you must compile mksqlite from source. Find the latest release here: https://github.com/AndreasMartin72/mksqlite/tags Run buildit.m to compile to a MEX-DLL. Unfortunately I don't have a Mac so I'm unable to test this. Please open an issue if you have trouble and I will see if I can help.
