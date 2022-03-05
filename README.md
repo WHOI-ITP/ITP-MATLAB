@@ -296,7 +296,12 @@ caxis([0.3, 1])
 
 ## Installation
 #### Requirements
-ITP-MATLAB depends on an open-source package called **Mksqlite**. The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating derived values (e.g. density, potential temperature, etc), but it is not strictly required to query the database. However without it, you will be limited to accessing a profile's pressure, in-situ temperature, and practical salinity.
+ITP-MATLAB requires MATALAB's database toolbox. 
+The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating 
+derived values (e.g. density, potential temperature, etc.).
+
+#### Install MATLAB 
+
 
 #### Windows users
   1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip'>latest ITP-MATLAB package</a>. 
