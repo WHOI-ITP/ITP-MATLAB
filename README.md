@@ -155,7 +155,7 @@ xlabel('Potential Temperature (°C)')
 ylabel('Depth (m)')
 ```
 
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/profile.PNG' height='400'/>
+<img src='resources/profile.PNG' height='400'/>
 
 
 ### Example - Over-plot Potential Temperature vs Depth for all profile
@@ -180,7 +180,7 @@ end
 axis ij;
 ylim(DEPTH_RANGE);
 ```
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/overplot.PNG' height='400'/>
+<img src='resources/overplot.PNG' height='400'/>
 
 ### Example - Show profile locations on a map (requires MATLAB mapping toolbox)
 Show the locations of all profiles in the Beaufort Gyre region from 2010
@@ -198,7 +198,7 @@ worldmap([70, 90], [-180, 180]);
 geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
 scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
 ```
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/scatter.PNG' height='400'/>
+<img src='resources/scatter.PNG' height='400'/>
 
 ### Example - Plot a potential temperature section 
 Contour plot potential temperature for the top 300 meters of ITP 1
@@ -258,7 +258,7 @@ xlabel('Drift Distance (km)');
 ylabel('Pressure (mbar)');
 ylabel(h, 'Potential Temperature (C)')
 ```
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/itp1_section.PNG' height='400'/>
+<img src='resources/itp1_section.PNG' height='400'/>
 
 ### Example - Show a map with temperature at 400m
 
