@@ -3,7 +3,7 @@ clear
 
 PRESSURE_RANGE = [0, 300];
 
-path = '../itp_final_2021_01_20.db';
+path = 'D:\ITP Data/itp_final_2021_11_09.db';
 profiles = load_itp(path, 'system', 1, 'pressure', PRESSURE_RANGE);
 
 % extract latitude and longitude values

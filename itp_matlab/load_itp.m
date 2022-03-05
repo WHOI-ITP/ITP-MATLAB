@@ -79,9 +79,8 @@ end
 
 query = [query, ' ORDER BY system_number, profile_number'];
 
-db = mksqlite('open', db_path);
-mksqlite('NULLasNaN', 1);
-results = mksqlite(db, query);
+db = sqlite(db_path, 'readonly');
+results = fetch(db, query);
 
 if length(results) > p.Results.max_results
     error('%d results exceed maximum of %d', length(results), p.Results.max_results)
@@ -90,9 +89,9 @@ end
 if notDefault('pressure', p)
     pressure = p.Results.pressure;
     pressure = pressure * 1E4;
-    pressureFilter = sprintf(' AND pressure >= %f AND pressure <= %f ', pressure);
+    pressure_filter = sprintf(' AND pressure >= %f AND pressure <= %f ', pressure);
 else
-    pressureFilter = '';
+    pressure_filter = '';
 end
 
 % Query the individual profiles
@@ -100,36 +99,37 @@ profiles = repmat(Profile(), length(results), 1);
 emptyProfiles = false(length(results), 1);
 
 for i = 1:size(results, 1)
-    profiles(i).serial_time = datenum(results(i).date_time,...
+    profiles(i).serial_time = datenum(results{i,5},...
                                     'yyyy-mm-ddTHH:MM:SS');
-    profiles(i).system_number = results(i).system_number;
-    profiles(i).profile_number = results(i).profile_number;
-    profiles(i).latitude = results(i).latitude;
-    profiles(i).longitude = results(i).longitude;
-    profiles(i).direction = results(i).direction;
+    profiles(i).system_number = results{i,2};
+    profiles(i).profile_number = results{i,3};
+    profiles(i).latitude = results{i,6};
+    profiles(i).longitude = results{i,7};
+    profiles(i).direction = results{i,8};
 
     query = [
-        'SELECT pressure/10000.0 AS pressure, ',...
-        'temperature/10000.0 AS temperature, ',... 
-        'salinity/10000.0 AS salinity ',...
+        'SELECT ifnull(pressure/10000.0, -9999.99) AS pressure, ',...
+        'ifnull(temperature/10000.0, -9999.99) AS temperature, ',... 
+        'ifnull(salinity/10000.0, -9999.99) AS salinity ',...
         'FROM ctd '];
 
     query = [query,...
         sprintf('WHERE profile_id = %d %s ORDER BY pressure',...
-        results(i).id, pressureFilter)];
-    ctd = mksqlite(db, query);
+        results{i,1}, pressure_filter)];
+    ctd = cell2mat(fetch(db, query));
+    ctd(ctd==-9999.99) = NaN;
     if size(ctd, 1) == 0
         emptyProfiles(i) = true;
         continue
     end
-    profiles(i).pressure = [ctd.pressure];
-    profiles(i).temperature = [ctd.temperature];
-    profiles(i).salinity = [ctd.salinity];
+    profiles(i).pressure = ctd(:,1);
+    profiles(i).temperature = ctd(:,2);
+    profiles(i).salinity = ctd(:,3);
     
     if notDefault('extra_variables', p)
         for j = 1:length(extra_variables)
             sql = sprintf([...
-                'SELECT value/10000.0 val FROM ctd ', ...
+                'SELECT ifnull(value/10000.0, -9999.99) val FROM ctd ', ...
                 'LEFT JOIN other_variables ', ...
             	'ON ctd.id == other_variables.ctd_id AND variable_id == ', ...
             	'(SELECT id FROM variable_names WHERE name == "%s") ', ...
@@ -149,7 +149,7 @@ profiles = profiles(~emptyProfiles);
 fprintf('%d profiles returned in %0.2f seconds\n',...
         length(profiles),...
         (now-startTime)*24*60*60);
-mksqlite(db, 'close');
+close(db);
 
 
 function output = format_date_range(input)
