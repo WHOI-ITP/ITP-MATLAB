@@ -320,18 +320,18 @@ derived values (e.g. density, potential temperature, etc.).
 
 #### Install the MATLAB Database Toolbox
 Open MATLAB and from the top ribbon bar select "Home" > "Add-Ons"  
-<img src='resources/dbtoolbox-1.png' width='600'/>  
+<img src='resources/dbtoolbox-1.png' width='800'/>  
 
 In the add-on explorer, search for "Database Toolbox"  
-<img src='resources/dbtoolbox-2.png' width='600'/>  
+<img src='resources/dbtoolbox-2.png' width='800'/>  
 
 From the search results, click "Database Toolbox" by MathWorks (it 
 will likely be the first result)  
-<img src='resources/dbtoolbox-3.png' width='600'/>  
+<img src='resources/dbtoolbox-3.png' width='800'/>  
 
 Click the "Install" button and follow the prompts to install the toolbox. 
 Note you will need to log in to your MathWorks account.  
-<img src='resources/dbtoolbox-4.png' width='600'/>
+<img src='resources/dbtoolbox-4.png' width='800'/>
 
 #### Install ITP-MATLAB and TEOS-10
   1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/refs/heads/dbtoolbox.zip'>ITP-MATLAB package</a>. 
