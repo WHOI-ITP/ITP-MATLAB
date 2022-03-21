@@ -60,7 +60,6 @@ elseif strcmp(query(end-6:end), ' WHERE ')
     query(end-6:end) = [];
 end
 query = [query, ' ORDER BY system_number, profile_number'];
-disp(query)
 
 
 function profiles = collect_profiles(db, meta_data, pressure, extra_vars)
