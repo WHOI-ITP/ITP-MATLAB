@@ -3,7 +3,7 @@ clear
 
 PRESSURE_RANGE = [0, 300];
 
-path = '../itp_final_2021_01_20.db';
+path = 'J:/ITP Data/itp_final_2022_03_11.db';
 profiles = load_itp(path, 'system', 1, 'pressure', PRESSURE_RANGE);
 
 % extract latitude and longitude values
@@ -32,10 +32,10 @@ depth_vec = []; dist_vec = []; temp_vec = [];
 for i = 1:length(profiles)
     I = profiles(i).pressure >= PRESSURE_RANGE(1) & ...
         profiles(i).pressure < PRESSURE_RANGE(2);
-    depth_vec = [depth_vec, profiles(i).pressure(I)];
+    depth_vec = [depth_vec; profiles(i).pressure(I)];
     ptemp = profiles(i).potential_temperature(0);  % reference of 0 dbar
-    temp_vec = [temp_vec, ptemp(I)];
-    dist_vec = [dist_vec, repmat(cumulative_distance(i), 1, sum(I))];
+    temp_vec = [temp_vec; ptemp(I)];
+    dist_vec = [dist_vec; repmat(cumulative_distance(i), sum(I), 1)];
 end
 
 % get rid of any NaN values in ptemp
@@ -44,7 +44,7 @@ depth_vec = depth_vec(notNan);
 temp_vec = temp_vec(notNan); 
 dist_vec = dist_vec(notNan); 
 
-tempInterpolant = scatteredInterpolant(dist_vec', depth_vec', temp_vec');
+tempInterpolant = scatteredInterpolant(dist_vec, depth_vec, temp_vec);
 temp_grid = tempInterpolant(dist_grid, pres_grid);
 
 % Plot the data

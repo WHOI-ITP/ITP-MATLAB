@@ -1,178 +1,142 @@
 function profiles = load_itp(db_path, varargin)
-startTime = now;
+start_time = now;
 p = inputParser;
-addParameter(p, 'system', ['*']);
-addParameter(p, 'latitude', [-90 90]);
-addParameter(p, 'longitude', [-180 180]);
+
+addParameter(p, 'system', []);
+addParameter(p, 'latitude', []);
+addParameter(p, 'longitude', []);
 addParameter(p, 'direction', []);
-addParameter(p, 'date_time', [0 datenum(2100,1,1)]);
+addParameter(p, 'date_time', []);
 addParameter(p, 'month', []);
-addParameter(p, 'pressure', [0 1000000]);
+addParameter(p, 'pressure', []);
 addParameter(p, 'max_results', 10000);
 addParameter(p, 'extra_variables', []);
 parse(p, varargin{:});
 
-query = 'SELECT * FROM profiles WHERE';
+args = p.Results;
+max_results = args.max_results;
+pressure = args.pressure;
+extra_variables = args.extra_variables;
+args = rmfield(args, {'max_results', 'pressure'});
+args = removeEmptyArgs(args);
 
-if notDefault('system', p)
-    system_filter = '(';
-    for i = 1:length(p.Results.system)
-        system_filter = [system_filter, sprintf(' system_number = %d OR', p.Results.system(i))];
-    end
-    system_filter = [system_filter(1:end-3), ') AND'];
-    query = [query, system_filter];
+query = build_query(args);
+db = sqlite(db_path, 'readonly');
+meta_data = fetch(db, query);
+if size(meta_data, 1) > max_results
+    error('ITP:excessResults', ...
+        '%d results exceed maximum of %d', ...
+        size(meta_data, 1), max_results)
 end
 
-if notDefault('latitude', p)
-    latFilter = sprintf(' (latitude > %f AND latitude < %f) AND', p.Results.latitude);
-    query = [query, latFilter];
-end
-
-if notDefault('longitude', p)
-    lon = p.Results.longitude;
-    if lon(2) < lon(1)
-        logical = 'OR';
-    else
-        logical = 'AND';
-    end
-    lonFilter = sprintf(' (longitude > %f %s longitude < %f) AND', lon(1), logical, lon(2));
-    query = [query, lonFilter];
-end
-
-if notDefault('direction', p)
-    dirFilter = sprintf(' direction = "%s" AND', p.Results.direction);
-    query = [query, dirFilter];
-end
-
-if notDefault('date_time', p)
-    time = {datestr(p.Results.date_time(1), 'yyyy-mm-ddTHH:MM:SS'), datestr(p.Results.date_time(2), 'yyyy-mm-ddTHH:MM:SS')};
-    timeFilter = sprintf(' date_time >= "%s" AND date_time < "%s" AND', time{1}, time{2});
-    query = [query, timeFilter];
-end
-
-if notDefault('month', p)
-    monthFilter = sprintf(' strftime("%%m", date_time) IN (%s) AND', ...
-        format_date_range(p.Results.month));
-    query = [query, monthFilter];
-end
-
-if notDefault('extra_variables', p)
-    extra_names = '';
-    extra_variables = make_cell(p.Results.extra_variables);
-
-    for i = 1:length(extra_variables)
-        extra_names = [extra_names, '"', extra_variables{i}, '"', ','];
-    end
-    extra_names(end) = '';
-    sql = sprintf([...
-        ' profiles.id IN (SELECT profile_id FROM profile_extra_variables ', ...
-        'INNER JOIN variable_names ', ...
-        'ON profile_extra_variables.variable_id == variable_names.id ', ...
-        'WHERE variable_names.name IN (%s)) AND']...
-    , extra_names);
-    query = [query, sql];
-end
-
-if strcmp(query(end-3:end), ' AND')
-    query = query(1:end-4);
-end
-
-query = [query, ' ORDER BY system_number, profile_number'];
-
-db = mksqlite('open', db_path);
-mksqlite('NULLasNaN', 1);
-results = mksqlite(db, query);
-
-if length(results) > p.Results.max_results
-    error('%d results exceed maximum of %d', length(results), p.Results.max_results)
-end
-
-if notDefault('pressure', p)
-    pressure = p.Results.pressure;
-    pressure = pressure * 1E4;
-    pressureFilter = sprintf(' AND pressure >= %f AND pressure <= %f ', pressure);
-else
-    pressureFilter = '';
-end
-
-% Query the individual profiles
-profiles = repmat(Profile(), length(results), 1);
-emptyProfiles = false(length(results), 1);
-
-for i = 1:size(results, 1)
-    profiles(i).serial_time = datenum(results(i).date_time,...
-                                    'yyyy-mm-ddTHH:MM:SS');
-    profiles(i).system_number = results(i).system_number;
-    profiles(i).profile_number = results(i).profile_number;
-    profiles(i).latitude = results(i).latitude;
-    profiles(i).longitude = results(i).longitude;
-    profiles(i).direction = results(i).direction;
-
-    query = [
-        'SELECT pressure/10000.0 AS pressure, ',...
-        'temperature/10000.0 AS temperature, ',... 
-        'salinity/10000.0 AS salinity ',...
-        'FROM ctd '];
-
-    query = [query,...
-        sprintf('WHERE profile_id = %d %s ORDER BY pressure',...
-        results(i).id, pressureFilter)];
-    ctd = mksqlite(db, query);
-    if size(ctd, 1) == 0
-        emptyProfiles(i) = true;
-        continue
-    end
-    profiles(i).pressure = [ctd.pressure];
-    profiles(i).temperature = [ctd.temperature];
-    profiles(i).salinity = [ctd.salinity];
-    
-    if notDefault('extra_variables', p)
-        for j = 1:length(extra_variables)
-            sql = sprintf([...
-                'SELECT value/10000.0 val FROM ctd ', ...
-                'LEFT JOIN other_variables ', ...
-            	'ON ctd.id == other_variables.ctd_id AND variable_id == ', ...
-            	'(SELECT id FROM variable_names WHERE name == "%s") ', ...
-            	'WHERE ctd.profile_id == %d ', ...
-            	'ORDER BY pressure'],...
-                extra_variables{j}, results(i).id);
-            this_variable = mksqlite(db, sql);
-            profiles(i).other_variables.(extra_variables{j}) = [this_variable.val];
-        end
-    end
-    
-end
-
-% Remove empty profiles
-profiles = profiles(~emptyProfiles);
+profiles = collect_profiles( ...
+    db, meta_data, pressure, extra_variables);
 
 fprintf('%d profiles returned in %0.2f seconds\n',...
         length(profiles),...
-        (now-startTime)*24*60*60);
-mksqlite(db, 'close');
+        (now-start_time)*24*60*60);
+close(db);
 
 
-function output = format_date_range(input)
-if ~isfloat(input)
-    error('Date range must be a vector of integers');
-end
-output = sprintf('"%02d",', input);
-output(end) = [];
-
-
-function cell_array = make_cell(input)
-if ischar(input)
-    cell_array = {input};
-elseif iscell(input)
-    cell_array = input;
-else
-    error('Unknown input type')
+function args = removeEmptyArgs(args)
+fields = fieldnames(args);
+for i = 1:length(fields)
+    if isempty(args.(fields{i}))
+        args = rmfield(args, fields{i});
+    end
 end
 
 
-function state = notDefault(field, parameters)
-if any(strcmp(parameters.UsingDefaults, field))
-    state = false;
-else
-    state = true;
+function query = build_query(args)
+query = 'SELECT * FROM profiles WHERE ';
+fields = fieldnames(args);
+for i = 1:length(fields)
+    field = fields{i};
+    values = args.(fields{i});
+    filter_obj = pre_filter_factory(field, values);
+    query = [query, filter_obj.value(), ' AND '];
+end
+if strcmp(query(end-4:end), ' AND ')
+    query(end-4:end) = [];
+elseif strcmp(query(end-6:end), ' WHERE ')
+    query(end-6:end) = [];
+end
+query = [query, ' ORDER BY system_number, profile_number'];
+
+
+function profiles = collect_profiles(db, meta_data, pressure, extra_vars)
+ID = 1;
+SYSTEM_NUMBER = 2;
+PROFILE_NUMBER = 3;
+DATE_TIME = 5;
+LATITUDE = 6;
+LONGITUDE = 7;
+DIRECTION = 8;
+PRESSURE = 1;
+TEMPERATURE = 2;
+SALINITY = 3;
+NULL = 1E15;
+
+profiles = repmat(Profile(), size(meta_data, 1), 1);
+empty_profiles = false(size(meta_data, 1), 1);
+
+for i = 1:size(meta_data, 1)
+    id = meta_data{i, ID};
+    profiles(i).serial_time = datenum(...
+        meta_data{i, DATE_TIME}, 'yyyy-mm-ddTHH:MM:SS');
+    profiles(i).system_number = double(meta_data{i, SYSTEM_NUMBER});
+    profiles(i).profile_number = double(meta_data{i, PROFILE_NUMBER});
+    profiles(i).latitude = meta_data{i, LATITUDE};
+    profiles(i).longitude = meta_data{i, LONGITUDE};
+    profiles(i).direction = meta_data{i, DIRECTION};
+    if ~isempty(pressure)
+        pressure_str = PressureFilter(pressure).value();
+    else
+        pressure_str = '';
+    end
+    query = sprintf([...
+        'SELECT ifnull(pressure/10000.0, %f) AS pressure, '...
+        'ifnull(temperature/10000.0, %f) AS temperature, '... 
+        'ifnull(salinity/10000.0, %f) AS salinity '...
+        'FROM ctd WHERE profile_id = %d %s ORDER BY pressure'], ...
+        NULL, NULL, NULL, id, pressure_str);
+
+    data = fetch(db, query);
+    if isempty(data)
+        % the pressure filter may eliminate all the samples
+        % in that case, remove the profile
+        empty_profiles(i) = true;
+        continue
+    end
+
+    ctd = double(cell2mat(data));
+    ctd(ctd==NULL) = NaN;
+    
+    profiles(i).pressure = ctd(:, PRESSURE);
+    profiles(i).temperature = ctd(:, TEMPERATURE);
+    profiles(i).salinity = ctd(:, SALINITY);
+    if ~isempty(extra_vars)
+        profiles(i).extra_variables = load_extra_variables(...
+            db, id, extra_vars, pressure_str, NULL);
+    end
+end
+profiles(empty_profiles) = [];
+
+function extra_vars_struct = load_extra_variables( ...
+    db, id, extra_vars, pressure_str, NULL)
+extra_vars_struct = [];
+for i = 1:length(extra_vars)
+    sql = sprintf([...
+        'SELECT ifnull(value/10000.0, %f) val FROM ctd ', ...
+        'LEFT JOIN other_variables ', ...
+    	'ON ctd.id == other_variables.ctd_id AND variable_id == ', ...
+    	'(SELECT id FROM variable_names WHERE name == "%s") ', ...
+    	'WHERE ctd.profile_id == %d %s ', ...
+    	'ORDER BY pressure'],...
+        NULL, extra_vars{i}, id, pressure_str);
+    this_variable = cell2mat(fetch(db, sql));
+    this_variable(this_variable == NULL) = NaN;
+    if ~all(isnan(this_variable))
+        extra_vars_struct.(extra_vars{i}) = this_variable;
+    end
 end

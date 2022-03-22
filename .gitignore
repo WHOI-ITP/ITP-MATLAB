@@ -3,3 +3,4 @@ itp.db
 mksqlite*
 gsw_matlab*
 .idea
+coverage*

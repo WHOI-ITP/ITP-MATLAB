@@ -1,8 +1,11 @@
+![Tests](https://img.shields.io/badge/Coverage-100%25-green)
+![Tests](https://img.shields.io/badge/Tests-Passing-green)
+
 # ITP-MATLAB
 The Ice Tethered Profiler (ITP) is an autonomous instrument that vertically profiles the water column under sea ice. The ITP collects measurements of conductivity, temperature, and depth. Data are automatically transmitted back via satellite.  [Learn More](http://www.whoi.edu/itp "Learn More")
 
 ## Motivation
-To date, 119 ITP systems have been deployed, and more than 130000 water profiles have been collected. As these data continue to accumulate, and the number of users working with the data increases, the need has become apparent for a set of tools to search for and access ITP data. 
+To date, 129 ITP systems have been deployed, and more than 137000 water profiles have been collected. As these data continue to accumulate, and the number of users working with the data increases, the need has become apparent for a set of tools to search for and access ITP data. 
 
 ## Features
   - Easily and rapidly search all ITP profiles
@@ -28,7 +31,7 @@ month | A vector containing numeric months to include in search. Months do not h
 pressure | A two element vector specifying the lowest and highest pressure bounds for returned profiles (in dbar). Note that pressure range only specifies pressure bounds. It does not guarantee that a profile will have the full range of pressure values
 system | A vector of ITP system numbers to filter for
 direction | A string specifying the direction the profiler was moving when the profile was taken. Acceptable values are 'up' or 'down'
-extra_variables | a cell array of "extra variables" that must be present in the profiles. If multiple variables are provided, the result will be an OR query (i.e. the results will have at least one of the variables, but not necessarily all). Supported values are: dissolved_oxygen, nacm, vert, east, north, par, turbidity, cdom, chlorophyll_a.
+extra_variables | a **cell array** of "extra variables" that must be present in the profiles. If multiple variables are provided, the result will be an OR query (i.e. the results will have at least one of the variables, but not necessarily all). Supported values are: dissolved_oxygen, nacm, vert, east, north, par, turbidity, cdom, chlorophyll_a.
 max\_results | The maximum number of results the `load_itp` function will return without throwing an error. The default value is 10000.
 
 #### Profile
@@ -155,7 +158,7 @@ xlabel('Potential Temperature (°C)')
 ylabel('Depth (m)')
 ```
 
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/profile.PNG' height='400'/>
+<img src='resources/profile.PNG' height='400'/>
 
 
 ### Example - Over-plot Potential Temperature vs Depth for all profile
@@ -180,7 +183,7 @@ end
 axis ij;
 ylim(DEPTH_RANGE);
 ```
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/overplot.PNG' height='400'/>
+<img src='resources/overplot.PNG' height='400'/>
 
 ### Example - Show profile locations on a map (requires MATLAB mapping toolbox)
 Show the locations of all profiles in the Beaufort Gyre region from 2010
@@ -198,7 +201,7 @@ worldmap([70, 90], [-180, 180]);
 geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
 scatterm([profiles.latitude], [profiles.longitude], 3, 'filled');
 ```
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/scatter.PNG' height='400'/>
+<img src='resources/scatter.PNG' height='400'/>
 
 ### Example - Plot a potential temperature section 
 Contour plot potential temperature for the top 300 meters of ITP 1
@@ -258,7 +261,7 @@ xlabel('Drift Distance (km)');
 ylabel('Pressure (mbar)');
 ylabel(h, 'Potential Temperature (C)')
 ```
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/itp1_section.PNG' height='400'/>
+<img src='resources/itp1_section.PNG' height='400'/>
 
 ### Example - Show a map with temperature at 400m
 
@@ -292,22 +295,55 @@ ylabel(h, 'Potential Temperature (C)')
 caxis([0.3, 1])
 ```
 
-<img src='https://github.com/WHOI-ITP/ITP-MATLAB/raw/master/resources/temperature_400m.PNG' height='400'/>
+<img src='resources/temperature_400m.PNG' height='400'/>
+
+
+### Example - Query "extra_variables" and plot dissolved oxygen
+Query dissolved oxygen from ITP 100. Plot DO/depth for the first profile.
+```
+path = 'J:/ITP Data/itp_final_2021_11_09.db';
+profiles = load_itp(path, 'system', 100,'extra_variables', {'dissolved_oxygen'});
+
+figure('Color', 'white')
+plot(profiles(1).extra_variables.dissolved_oxygen, ...
+    profiles(1).depth)
+axis ij;
+
+xlabel('Dissolved Oxygen')
+ylabel('Depth (m)')
+```
+<img src='resources/dissolved_oxygen.png' height='400'/>
+
 
 ## Installation
 #### Requirements
-ITP-MATLAB depends on an open-source package called **Mksqlite**. The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating derived values (e.g. density, potential temperature, etc), but it is not strictly required to query the database. However without it, you will be limited to accessing a profile's pressure, in-situ temperature, and practical salinity.
+ITP-MATLAB requires MATALAB's database toolbox. 
+The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating 
+derived values (e.g. density, potential temperature, etc.).
 
-#### Windows users
-  1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/master.zip'>latest ITP-MATLAB package</a>. 
-  2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`.
+#### Install the MATLAB Database Toolbox
+Open MATLAB and from the top ribbon bar select "Home" > "Add-Ons"  
+<img src='resources/dbtoolbox-1.png' width='800'/>  
+
+In the add-on explorer, search for "Database Toolbox"  
+<img src='resources/dbtoolbox-2.png' width='800'/>  
+
+From the search results, click "Database Toolbox" by MathWorks (it 
+will likely be the first result)  
+<img src='resources/dbtoolbox-3.png' width='800'/>  
+
+Click the "Install" button and follow the prompts to install the toolbox. 
+Note you will need to log in to your MathWorks account.  
+<img src='resources/dbtoolbox-4.png' width='800'/>
+
+#### Install ITP-MATLAB and TEOS-10
+  1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/refs/heads/dbtoolbox.zip'>ITP-MATLAB package</a>. 
+  2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`
   3. Download the <a href='https://www.dropbox.com/sh/5u68j8h5eiamk1x/AABZTJd3Hx2y-GAsoBKyZo01a?dl=0'>latest ITP database</a>. Unzip it to your desired location, and take note of its path. yyyy\_mm\_dd is the date the database was built.
-  4. Download the <a href='http://www.teos-10.org/software.htm'>TEOS-10 Gibbs Seawater Toolbox</a>.
+  4. Download and unzip  the <a href='http://www.teos-10.org/software/gsw_matlab_v3_06_14.zip'>TEOS-10 Gibbs Seawater Toolbox</a>. (You may need to right-click, Save as...)
   5. In MATLAB, type `pathtool` in the command window. 
   6. Click the `Add Folder...` button.
-  7. Browse to the ITP-MATLAB folder from step 2 and add the `itp_matlab` and `mksqlite-1.5` folders to the path.
-  8. Click `Add with Subfolders...` and select the `gsw_matlab_v3_06_12` folder.
+  7. Browse to the ITP-MATLAB folder from step 2 and add the `itp_matlab` folder to the path.
+  8. Click `Add with Subfolders...` and select the `gsw_matlab_v3_06_14` folder.
   9. Click `Save` and close the path window.
   
-#### Mac Users
-Installation steps are the same, but you must compile mksqlite from source. Find the latest release here: https://github.com/AndreasMartin72/mksqlite/tags Run buildit.m to compile to a MEX-DLL. Unfortunately I don't have a Mac so I'm unable to test this. Please open an issue if you have trouble and I will see if I can help.
