@@ -10,11 +10,13 @@ classdef ExtraVariableFilter < SqlFilter
             check@SqlFilter(obj)
             
             if ~iscell(obj.args)
-                error('"extra_variables" must be a cell array')
+                error('ITP:valueError', ...
+                    '"extra_variables" must be a cell array')
             end
             for i = 1:length(obj.args)
                 if ~any(strcmp(obj.args{i}, obj.valid))
-                    error('Invalid "extra_variable" %s', obj.args{i})
+                    error('ITP:valueError', ...
+                        'Unknown "extra_variable" %s', obj.args{i})
                 end
             end
         end

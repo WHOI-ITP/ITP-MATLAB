@@ -17,17 +17,20 @@ args = p.Results;
 max_results = args.max_results;
 pressure = args.pressure;
 extra_variables = args.extra_variables;
-args = rmfield(args, {'max_results', 'pressure', 'extra_variables'});
+args = rmfield(args, {'max_results', 'pressure'});
 args = removeEmptyArgs(args);
 
 query = build_query(args);
 db = sqlite(db_path, 'readonly');
 meta_data = fetch(db, query);
 if size(meta_data, 1) > max_results
-    error('%d results exceed maximum of %d', ...
+    error('ITP:excessResults', ...
+        '%d results exceed maximum of %d', ...
         size(meta_data, 1), max_results)
 end
-profiles = collect_profiles(db, meta_data, pressure, extra_variables);
+
+profiles = collect_profiles( ...
+    db, meta_data, pressure, extra_variables);
 profiles = remove_empty_profiles(profiles);
 
 fprintf('%d profiles returned in %0.2f seconds\n',...
@@ -63,7 +66,6 @@ query = [query, ' ORDER BY system_number, profile_number'];
 
 
 function profiles = collect_profiles(db, meta_data, pressure, extra_vars)
-profiles = repmat(Profile(), size(meta_data, 1), 1);
 ID = 1;
 SYSTEM_NUMBER = 2;
 PROFILE_NUMBER = 3;
@@ -76,12 +78,15 @@ TEMPERATURE = 2;
 SALINITY = 3;
 NULL = 1E15;
 
+profiles = repmat(Profile(), size(meta_data, 1), 1);
+empty_profiles = false(size(meta_data, 1), 1);
+
 for i = 1:size(meta_data, 1)
     id = meta_data{i, ID};
     profiles(i).serial_time = datenum(...
         meta_data{i, DATE_TIME}, 'yyyy-mm-ddTHH:MM:SS');
-    profiles(i).system_number = meta_data{i, SYSTEM_NUMBER};
-    profiles(i).profile_number = meta_data{i, PROFILE_NUMBER};
+    profiles(i).system_number = double(meta_data{i, SYSTEM_NUMBER});
+    profiles(i).profile_number = double(meta_data{i, PROFILE_NUMBER});
     profiles(i).latitude = meta_data{i, LATITUDE};
     profiles(i).longitude = meta_data{i, LONGITUDE};
     profiles(i).direction = meta_data{i, DIRECTION};
@@ -98,7 +103,14 @@ for i = 1:size(meta_data, 1)
         NULL, NULL, NULL, id, pressure_str);
 
     data = fetch(db, query);
-    ctd = cell2mat(data);
+    if isempty(data)
+        % the pressure filter may eliminate all the samples
+        % in that case, remove the profile
+        empty_profiles(i) = true;
+        continue
+    end
+
+    ctd = double(cell2mat(data));
     ctd(ctd==NULL) = NaN;
     
     profiles(i).pressure = ctd(:, PRESSURE);
@@ -108,6 +120,7 @@ for i = 1:size(meta_data, 1)
         profiles(i).extra_variables = load_extra_variables(...
             db, id, extra_vars, NULL);
     end
+    profiles(empty_profiles) = [];
 end
 
 
