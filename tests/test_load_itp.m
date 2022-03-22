@@ -74,4 +74,5 @@ end
 
 function test_pressure_filter(testCase)
 results = load_itp('testdb.db', 'pressure', [0, 100]);
+testCase.verifyEqual(length(results), 58)
 end

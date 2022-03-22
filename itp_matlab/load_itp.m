@@ -90,7 +90,7 @@ for i = 1:size(meta_data, 1)
     profiles(i).latitude = meta_data{i, LATITUDE};
     profiles(i).longitude = meta_data{i, LONGITUDE};
     profiles(i).direction = meta_data{i, DIRECTION};
-    if ~isempty (pressure)
+    if ~isempty(pressure)
         pressure_str = PressureFilter(pressure).value();
     else
         pressure_str = '';
@@ -120,9 +120,8 @@ for i = 1:size(meta_data, 1)
         profiles(i).extra_variables = load_extra_variables(...
             db, id, extra_vars, NULL);
     end
-    profiles(empty_profiles) = [];
 end
-
+profiles(empty_profiles) = [];
 
 function extra_vars_struct = load_extra_variables(db, id, extra_vars, NULL)
 extra_vars_struct = [];
