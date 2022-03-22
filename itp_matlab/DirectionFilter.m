@@ -3,10 +3,12 @@ classdef DirectionFilter < SqlFilter
         function check(obj)
             check@SqlFilter(obj)
             if ~isstr(obj.args)
-                error('"direction" must be a string')
+                error('ITP:valueError', ...
+                    '"direction" must be a string')
             end
             if ~any(strcmp({'up', 'down'}, obj.args))
-                error('"direction" must be either "up" or "down"')
+                error('ITP:valueError', ...
+                    '"direction" must be either "up" or "down"')
             end
         end
 

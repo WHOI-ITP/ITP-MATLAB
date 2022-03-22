@@ -11,12 +11,14 @@ classdef SqlFilter
 
         function check(obj)
             if isempty(obj.args)
-                error('Argument cannot be empty')
+                error('ITP:valueError', ...
+                    'Argument cannot be empty')
             end
         end
 
         function query = value(obj)
-            error('Function must be implemented in subclass')
+            error('ITP:notImplemented', ...
+                'Function must be implemented in subclass')
         end
         
     end

@@ -3,7 +3,8 @@ classdef SystemFilter < SqlFilter
         function check(obj)
             check@SqlFilter(obj)
             if ~isnumeric(obj.args)
-                error('"system" must be a numeric vector')
+                error('ITP:valueError', ...
+                    '"system" must be a numeric vector')
             end
         end
 

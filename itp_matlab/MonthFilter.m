@@ -3,13 +3,16 @@ classdef MonthFilter < SqlFilter
         function check(obj)
             check@SqlFilter(obj)
             if ~isnumeric(obj.args)
-                error('"month" must be a numeric vector')
+                error('ITP:valueError', ...
+                    '"month" must be a numeric vector')
             end
             if ~all(rem(obj.args, 1) == 0)
-                error('"month" values must be whole numbers')
+                error('ITP:valueError', ...
+                    '"month" values must be whole numbers')
             end
             if ~all(ismember(obj.args, 1:12))
-                error('"month" must be in the range [1, 12]')
+                error('ITP:valueError', ...
+                    '"month" must be in the range [1, 12]')
             end
         end
 
