@@ -115,3 +115,17 @@ function test_query_no_args(testCase)
 results = load_itp('testdb.db');
 testCase.verifyEqual(length(results), 60)
 end
+
+
+function test_direction_filter(testCase)
+results = load_itp('testdb.db', 'system', 1, 'direction', 'up');
+testCase.verifyEqual([results.profile_number], [1,3,5,7,9])
+results = load_itp('testdb.db', 'system', 1, 'direction', 'down');
+testCase.verifyEqual([results.profile_number], [2,4,6,8,10])
+end
+
+
+function test_month_filter(testCase)
+results = load_itp('testdb.db', 'month', [8, 10]);
+testCase.verifyEqual(length(results), 40)
+end
