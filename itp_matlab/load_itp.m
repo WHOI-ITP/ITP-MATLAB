@@ -31,7 +31,6 @@ end
 
 profiles = collect_profiles( ...
     db, meta_data, pressure, extra_variables);
-profiles = remove_empty_profiles(profiles);
 
 fprintf('%d profiles returned in %0.2f seconds\n',...
         length(profiles),...
@@ -140,13 +139,3 @@ for i = 1:length(extra_vars)
         extra_vars_struct.(extra_vars{i}) = this_variable;
     end
 end
-
-
-function profiles = remove_empty_profiles(profiles)
-empty_profile = false(size(profiles, 1), 1);
-for i = 1:length(empty_profile)
-    if isempty(profiles(i).pressure)
-        empty_profile(i) = true;
-    end
-end
-profiles(empty_profile) = [];

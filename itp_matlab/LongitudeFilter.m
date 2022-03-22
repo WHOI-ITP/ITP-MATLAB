@@ -3,13 +3,16 @@ classdef LongitudeFilter < SqlFilter
         function check(obj)
             check@SqlFilter(obj)
             if ~isnumeric(obj.args)
-                error('"longitude" must be a numeric vector')
+                error('ITP:valueError', ...
+                    '"longitude" must be a numeric vector')
             end
             if length(obj.args) ~= 2
-                error('"longitude" must contain exactly two values')
+                error('ITP:valueError', ...
+                    '"longitude" must contain exactly two values')
             end
             if ~all(obj.args >= -180 & obj.args <= 180)
-                error('"longitude" must be in range -180 to 180')
+                error('ITP:valueError', ...
+                    '"longitude" must be in range -180 to 180')
             end
         end
 

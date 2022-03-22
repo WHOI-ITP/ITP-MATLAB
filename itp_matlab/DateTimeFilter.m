@@ -3,13 +3,16 @@ classdef DateTimeFilter < SqlFilter
         function check(obj)
             check@SqlFilter(obj)
             if ~isnumeric(obj.args)
-                error('"date_time" must be a numeric vector')
+                error('ITP:valueError', ...
+                    '"date_time" must be a numeric vector')
             end
             if length(obj.args) ~= 2
-                error('"date_time" must contain exactly two values')
+                error('ITP:valueError', ...
+                    '"date_time" must contain exactly two values')
             end
             if obj.args(2) <= obj.args(1)
-                error('End time must be later than start time')
+                error('ITP:valueError', ...
+                    'End time must be later than start time')
             end
         end
 

@@ -3,13 +3,16 @@ classdef PressureFilter < SqlFilter
         function check(obj)
             check@SqlFilter(obj)
             if ~isnumeric(obj.args)
-                error('"pressure" must be a numeric vector')
+                error('ITP:valueError', ...
+                    '"pressure" must be a numeric vector')
             end
             if length(obj.args) ~= 2
-                error('"pressure" must contain exactly two values')
+                error('ITP:valueError', ...
+                    '"pressure" must contain exactly two values')
             end
             if obj.args(2) <= obj.args(1)
-                error('"pressure" values must be increasing')
+                error('ITP:valueError', ...
+                    '"pressure" values must be increasing')
             end
         end
 
