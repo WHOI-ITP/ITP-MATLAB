@@ -85,6 +85,12 @@ testCase.verifyEqual([results.profile_number], [1,2,3,4,5])
 end
 
 
+function test_latitude_filter_no_results(testCase)
+results = load_itp('testdb.db', 'system', 1, 'latitude', [-90, -80]);
+testCase.verifyEqual(length(results), 0)
+end
+
+
 function test_longitude_filter(testCase)
 results = load_itp('testdb.db', 'system', 1, 'longitude', [-150, 0]);
 testCase.verifyEqual(length(results), 3)

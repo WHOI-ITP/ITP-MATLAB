@@ -1,3 +1,6 @@
+![Tests](https://img.shields.io/badge/Coverage-100%25-green)
+![Tests](https://img.shields.io/badge/Tests-Passing-green)
+
 # ITP-MATLAB
 The Ice Tethered Profiler (ITP) is an autonomous instrument that vertically profiles the water column under sea ice. The ITP collects measurements of conductivity, temperature, and depth. Data are automatically transmitted back via satellite.  [Learn More](http://www.whoi.edu/itp "Learn More")
 

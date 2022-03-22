@@ -10,4 +10,4 @@ p = CodeCoveragePlugin.forFolder( ...
     sourceCodeFolder,"Producing",reportFormat);
 runner.addPlugin(p)
 
-runner.run(suite);
+results = runner.run(suite);
