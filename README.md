@@ -295,14 +295,14 @@ caxis([0.3, 1])
 <img src='resources/temperature_400m.PNG' height='400'/>
 
 
-### Example - Query "other_variables" and plot dissolved oxygen
+### Example - Query "extra_variables" and plot dissolved oxygen
 Query dissolved oxygen from ITP 100. Plot DO/depth for the first profile.
 ```
 path = 'J:/ITP Data/itp_final_2021_11_09.db';
 profiles = load_itp(path, 'system', 100,'extra_variables', {'dissolved_oxygen'});
 
 figure('Color', 'white')
-plot(profiles(1).other_variables.dissolved_oxygen, ...
+plot(profiles(1).extra_variables.dissolved_oxygen, ...
     profiles(1).depth)
 axis ij;
 

@@ -2,7 +2,7 @@ clc
 clear
 
 
-path = 'J:/ITP Data/itp_final_2021_11_09.db';
+path = 'J:/ITP Data/itp_final_2022_03_11.db';
 dateRange = [datenum(2006, 1, 1), datenum(2008, 1, 1)];
 
 profiles = load_itp(path,... 
@@ -25,7 +25,8 @@ latitude = [profiles.latitude];
 figure('Color', 'white')
 worldmap([70, 90], [-180, 180]);
 geoshow('landareas.shp', 'FaceColor', [0.5 0.7 0.5])
-scatterm([profiles.latitude], [profiles.longitude], 15, temp_400, 'filled');
+scatterm([profiles.latitude], [profiles.longitude], 15, ...
+    temp_400, 'filled');
 h = colorbar;
 ylabel(h, 'Potential Temperature (C)')
 caxis([0.3, 1])
