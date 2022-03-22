@@ -317,7 +317,7 @@ ylabel('Depth (m)')
 
 ## Installation
 #### Requirements
-ITP-MATLAB requires MATALAB's database toolbox. 
+ITP-MATLAB requires MATLAB's database toolbox. 
 The **TEOS-10 Gibbs Seawater Toolbox** is required for calculating 
 derived values (e.g. density, potential temperature, etc.).
 
