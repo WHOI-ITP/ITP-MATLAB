@@ -129,3 +129,13 @@ function test_month_filter(testCase)
 results = load_itp('testdb.db', 'month', [8, 10]);
 testCase.verifyEqual(length(results), 40)
 end
+
+
+function test_system_and_pressure_and_extra_vars(testCase)
+results = load_itp('testdb.db', 'pressure', [0, 100], ...
+    'extra_variables', {'dissolved_oxygen'}, 'system', 100);
+testCase.verifyEqual(length(results), 10)
+testCase.verifyEqual( ...
+    length(results(10).extra_variables.dissolved_oxygen), ...
+    length(results(10).pressure))
+end
