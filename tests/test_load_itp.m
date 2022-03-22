@@ -76,3 +76,42 @@ function test_pressure_filter(testCase)
 results = load_itp('testdb.db', 'pressure', [0, 100]);
 testCase.verifyEqual(length(results), 58)
 end
+
+
+function test_latitude_filter(testCase)
+results = load_itp('testdb.db', 'system', 1, 'latitude', [78.75, 90]);
+testCase.verifyEqual(length(results), 5)
+testCase.verifyEqual([results.profile_number], [1,2,3,4,5])
+end
+
+
+function test_longitude_filter(testCase)
+results = load_itp('testdb.db', 'system', 1, 'longitude', [-150, 0]);
+testCase.verifyEqual(length(results), 3)
+testCase.verifyEqual([results.profile_number], [8,9,10])
+results = load_itp('testdb.db', 'system', 1, 'longitude', [0, -150]);
+testCase.verifyEqual(length(results), 7)
+testCase.verifyEqual([results.profile_number], [1,2,3,4,5,6,7])
+end
+
+
+function test_time_filter(testCase)
+time_range = [datenum(2005, 8, 17), datenum(2005, 9, 1)];
+results = load_itp('testdb.db', 'system', 1, 'date_time', time_range);
+testCase.verifyEqual(length(results), 7)
+testCase.verifyTrue(all([results.serial_time] >= datenum(2005, 8, 17)))
+testCase.verifyTrue(all([results.serial_time] < datenum(2005, 9, 1)))
+end
+
+
+function test_time_filter_no_results(testCase)
+time_range = [datenum(2001, 8, 17), datenum(2001, 9, 1)];
+results = load_itp('testdb.db', 'system', 1, 'date_time', time_range);
+testCase.verifyEqual(length(results), 0)
+end
+
+
+function test_query_no_args(testCase)
+results = load_itp('testdb.db');
+testCase.verifyEqual(length(results), 60)
+end
