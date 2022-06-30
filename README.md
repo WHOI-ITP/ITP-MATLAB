@@ -337,7 +337,7 @@ Note you will need to log in to your MathWorks account.
 <img src='resources/dbtoolbox-4.png' width='800'/>
 
 #### Install ITP-MATLAB and TEOS-10
-  1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/archive/refs/heads/dbtoolbox.zip'>ITP-MATLAB package</a>. 
+  1. Download the <a href='https://github.com/WHOI-ITP/ITP-MATLAB/releases/'>ITP-MATLAB package</a>. 
   2. Unzip the file. Rename the unzipped folder to `ITP-MATLAB`
   3. Download the <a href='https://www.dropbox.com/sh/5u68j8h5eiamk1x/AABZTJd3Hx2y-GAsoBKyZo01a?dl=0'>latest ITP database</a>. Unzip it to your desired location, and take note of its path. yyyy\_mm\_dd is the date the database was built.
   4. Download and unzip  the <a href='http://www.teos-10.org/software/gsw_matlab_v3_06_14.zip'>TEOS-10 Gibbs Seawater Toolbox</a>. (You may need to right-click, Save as...)
