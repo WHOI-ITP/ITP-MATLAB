@@ -84,7 +84,11 @@ for i = 1:size(meta_data, 1)
     id = meta_data{i, ID};
     profiles(i).serial_time = datenum(...
         meta_data{i, DATE_TIME}, 'yyyy-mm-ddTHH:MM:SS');
-    profiles(i).system_number = double(meta_data{i, SYSTEM_NUMBER});
+    if isa(meta_data{i, SYSTEM_NUMBER}, 'int64')
+        profiles(i).system_number = double(meta_data{i, SYSTEM_NUMBER});
+    else
+        profiles(i).system_number = meta_data{i, SYSTEM_NUMBER};
+    end    
     profiles(i).profile_number = double(meta_data{i, PROFILE_NUMBER});
     profiles(i).latitude = meta_data{i, LATITUDE};
     profiles(i).longitude = meta_data{i, LONGITUDE};
