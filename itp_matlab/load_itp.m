@@ -22,7 +22,7 @@ args = removeEmptyArgs(args);
 
 query = build_query(args);
 db = sqlite(db_path, 'readonly');
-meta_data = fetch(db, query);
+meta_data = fetch(db, query, 'DataReturnFormat', 'cellarray');
 if size(meta_data, 1) > max_results
     error('ITP:excessResults', ...
         '%d results exceed maximum of %d', ...
@@ -105,7 +105,7 @@ for i = 1:size(meta_data, 1)
         'FROM ctd WHERE profile_id = %d %s ORDER BY pressure'], ...
         NULL, NULL, NULL, id, pressure_str);
 
-    data = fetch(db, query);
+    data = fetch(db, query, 'DataReturnFormat', 'cellarray');
     if isempty(data)
         % the pressure filter may eliminate all the samples
         % in that case, remove the profile
@@ -138,7 +138,7 @@ for i = 1:length(extra_vars)
     	'WHERE ctd.profile_id == %d %s ', ...
     	'ORDER BY pressure'],...
         NULL, extra_vars{i}, id, pressure_str);
-    this_variable = cell2mat(fetch(db, sql));
+    this_variable = cell2mat(fetch(db, sql, 'DataReturnFormat', 'cellarray'));
     this_variable(this_variable == NULL) = NaN;
     if ~all(isnan(this_variable))
         extra_vars_struct.(extra_vars{i}) = this_variable;
